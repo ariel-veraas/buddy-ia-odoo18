@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+  <!-- GENERADO por tools/buddy_art.py (una sola fuente para los dos buddys): no editar a mano, cambiá el generador. -->
+  <t t-name="buddy_ia.Avatar">
+    <svg class="o_buddy_avatar" t-att-class="rootClass" t-att-viewBox="viewBox" t-att-width="svgWidth" t-att-height="svgHeight" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient t-attf-id="bd-rainbow-{{uid}}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#34e8ff"/><stop offset=".3" stop-color="#7c5cff"/>
+          <stop offset=".55" stop-color="#ff4fd8"/><stop offset=".78" stop-color="#ffd84a"/><stop offset="1" stop-color="#46f0a0"/>
+        </linearGradient>
+      </defs>
+      <t t-call="{{buddyTemplate}}"/>
+    </svg>
+  </t>
+  <t t-name="buddy_ia.AvatarAccessories">
+    <g xmlns="http://www.w3.org/2000/svg" class="bd-accs">
+      <t t-foreach="accessoryList" t-as="acc" t-key="acc.id">
+        <g t-att-transform="acc.transform">
+          <g t-att-class="acc.className">
+            <t t-if="acc.id === 'mustache'">
+              <path d="M0 -3 C-8 -10 -21 -9 -26 -1 C-28 4 -22 8 -18 5.5 C-21 12 -9 13 -4 6 Q0 3.6 4 6 C9 13 21 12 18 5.5 C22 8 28 4 26 -1 C21 -9 8 -10 0 -3Z" fill="#7b4b2c" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M-4 -1.6 C-10 -5.4 -18 -4.4 -21 0.6 M4 -1.6 C10 -5.4 18 -4.4 21 0.6" fill="none" stroke="#8a5a3a" stroke-width="1.6" stroke-linecap="round"/>
+            </t>
+            <t t-elif="acc.id === 'wizard'">
+              <path d="M-30 3 C-28 -24 -8 -52 18 -68 C28 -72 36 -64 31 -57 C25 -52 22 -26 30 3Z" fill="#6a4bd8" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M30 3 C22 -26 25 -52 31 -57 C36 -64 28 -72 18 -68 C22 -50 14 -22 8 3Z" fill="#4d34ad" opacity=".55"/>
+              <path d="M-31 -3 Q0 8 31 -3 L30 -12 Q0 -1 -30 -12Z" fill="#ffd84a" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M-2 -38.5 Q-0.5700000000000001 -33.43 4.5 -32 Q-0.5700000000000001 -30.57 -2 -25.5 Q-3.4299999999999997 -30.57 -8.5 -32 Q-3.4299999999999997 -33.43 -2 -38.5Z" fill="#ffe27a"/>
+              <circle cx="11" cy="-44" r="2.2" fill="#ffe27a"/><circle cx="-14" cy="-16" r="1.8" fill="#ffe27a"/>
+              <ellipse cx="0" cy="3" rx="47" ry="10" fill="#5b3fc4" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M-36 2 Q0 12 36 2" fill="none" stroke="#8c72ff" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+            </t>
+            <t t-elif="acc.id === 'party'">
+              <path d="M-19 4 L0 -52 L19 4 Q0 11 -19 4Z" fill="#ff6fae" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <path d="M-14 -9 Q0 -2 14 -9 L11 -17 Q0 -11 -11 -17Z M-8 -27 Q0 -22 8 -27 L5 -35 Q0 -31 -5 -35Z" fill="#ffe27a"/>
+              <path d="M-19 4 L0 -52 L19 4 Q0 11 -19 4Z" fill="none" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <circle cx="0" cy="-54" r="6.4" fill="#7af0ff" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+            </t>
+            <t t-elif="acc.id === 'shades'">
+              <path d="M-40 -4 L-52 -8 M40 -4 L52 -8" fill="none" stroke="#0a0a1a" stroke-width="3.4" stroke-linecap="round"/>
+              <path d="M-10 -3 Q0 -9 10 -3" fill="none" stroke="#0a0a1a" stroke-width="3.6" stroke-linecap="round"/>
+              <path d="M-39 -8 L-9 -8 Q-9 12 -22 12 Q-39 12 -39 -2Z" fill="#1b2150" stroke="#a9b6ff" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M39 -8 L9 -8 Q9 12 22 12 Q39 12 39 -2Z" fill="#1b2150" stroke="#a9b6ff" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M-34 -3 L-24 -3 M-30 3 L-26 3 M34 -3 L24 -3 M30 3 L26 3" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+              <path d="M-39 -8 L-9 -8 M39 -8 L9 -8" fill="none" stroke="#fff" stroke-width="1.4" opacity=".35"/>
+            </t>
+            <t t-elif="acc.id === 'headphones'">
+              <path d="M-49 8 C-53 -62 53 -62 49 8" fill="none" stroke="#141a3c" stroke-width="12" stroke-linecap="round"/>
+              <path d="M-49 8 C-53 -62 53 -62 49 8" fill="none" class="s-primary" stroke-width="7" stroke-linecap="round"/>
+              <rect x="-62" y="-12" width="20" height="36" rx="9" class="c-primary" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <rect x="42" y="-12" width="20" height="36" rx="9" class="c-primary" stroke="#141a3c" stroke-width="2.6" stroke-linejoin="round"/>
+              <rect x="-57" y="-5" width="10" height="22" rx="5" fill="#0b0f2b" opacity=".85"/>
+              <rect x="47" y="-5" width="10" height="22" rx="5" fill="#0b0f2b" opacity=".85"/>
+            </t>
+          </g>
+        </g>
+      </t>
+    </g>
+  </t>
+  <t t-name="buddy_ia.AvatarFx">
+    <g xmlns="http://www.w3.org/2000/svg" class="bd-fxlayer">
+      <g t-if="fxs.includes('sweat')" t-att-transform="anchor('temple')"><g class="bd-fx bd-fx-sweat">
+        <path d="M0 -10 C6 -2 8 3 8 6 A8 8 0 1 1 -8 6 C-8 3 -6 -2 0 -10Z" fill="#9adcff" stroke="#141a3c" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M-3.4 3 Q-4.6 6.6 -2.2 9" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </g></g>
+      <g t-if="fxs.includes('vein')" t-att-transform="anchor('forehead')"><g class="bd-fx bd-fx-vein">
+        <path d="M-9 -3 Q-3 -3 -3 -9 M9 -3 Q3 -3 3 -9 M-9 3 Q-3 3 -3 9 M9 3 Q3 3 3 9" fill="none" stroke="#141a3c" stroke-width="8.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M-9 -3 Q-3 -3 -3 -9 M9 -3 Q3 -3 3 -9 M-9 3 Q-3 3 -3 9 M9 3 Q3 3 3 9" fill="none" stroke="#ff4d4d" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </g></g>
+      <g t-if="fxs.includes('sparkles')" t-att-transform="anchor('top')"><g class="bd-fx bd-fx-sparkles">
+        <g class="bd-spark s1" transform="translate(-52 6)"><path d="M0 -12 Q2.64 -2.64 12 0 Q2.64 2.64 0 12 Q-2.64 2.64 -12 0 Q-2.64 -2.64 0 -12Z" fill="#fff3a8" stroke="#141a3c" stroke-width="1.6" stroke-linejoin="round"/></g>
+        <g class="bd-spark s2" transform="translate(54 -2)"><path d="M0 -14 Q3.08 -3.08 14 0 Q3.08 3.08 0 14 Q-3.08 3.08 -14 0 Q-3.08 -3.08 0 -14Z" fill="#fff3a8" stroke="#141a3c" stroke-width="1.6" stroke-linejoin="round"/></g>
+        <g class="bd-spark s3" transform="translate(-30 -18)"><path d="M0 -8.5 Q1.87 -1.87 8.5 0 Q1.87 1.87 0 8.5 Q-1.87 1.87 -8.5 0 Q-1.87 -1.87 0 -8.5Z" fill="#fff" stroke="#141a3c" stroke-width="1.4" stroke-linejoin="round"/></g>
+        <g class="bd-spark s4" transform="translate(34 28)"><path d="M0 -8.5 Q1.87 -1.87 8.5 0 Q1.87 1.87 0 8.5 Q-1.87 1.87 -8.5 0 Q-1.87 -1.87 0 -8.5Z" fill="#fff" stroke="#141a3c" stroke-width="1.4" stroke-linejoin="round"/></g>
+      </g></g>
+      <g t-if="fxs.includes('hearts')" t-att-transform="anchor('top')"><g class="bd-fx bd-fx-hearts">
+        <g class="bd-float f1" transform="translate(-26 6)"><g transform="translate(0 0) scale(1.5)"><path class="" d="M0 7 C-13 -2 -9 -12 0 -5.5 C9 -12 13 -2 0 7Z" fill="#ff5c8a" stroke="#141a3c" stroke-width="1.47" stroke-linejoin="round"/></g></g>
+        <g class="bd-float f2" transform="translate(30 -4)"><g transform="translate(0 0) scale(1.1)"><path class="" d="M0 7 C-13 -2 -9 -12 0 -5.5 C9 -12 13 -2 0 7Z" fill="#ff5c8a" stroke="#141a3c" stroke-width="2.00" stroke-linejoin="round"/></g></g>
+        <g class="bd-float f3" transform="translate(6 -14)"><g transform="translate(0 0) scale(0.8)"><path class="" d="M0 7 C-13 -2 -9 -12 0 -5.5 C9 -12 13 -2 0 7Z" fill="#ff5c8a" stroke="#141a3c" stroke-width="2.75" stroke-linejoin="round"/></g></g>
+      </g></g>
+      <g t-if="fxs.includes('question')" t-att-transform="anchor('top')"><g class="bd-fx bd-fx-question">
+        <path d="M-7 -9 C-7 -19 9 -19 9 -9 C9 -2 0 -3 0 5" fill="none" stroke="#141a3c" stroke-width="8.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M-7 -9 C-7 -19 9 -19 9 -9 C9 -2 0 -3 0 5" fill="none" stroke="#fff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="0" cy="12.5" r="2.9" fill="#fff" stroke="#141a3c" stroke-width="2.6"/>
+      </g></g>
+      <g t-if="fxs.includes('exclaim')" t-att-transform="anchor('top')"><g class="bd-fx bd-fx-exclaim">
+        <path d="M0 -17 L0 1" fill="none" stroke="#141a3c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M0 -17 L0 1" fill="none" stroke="#fff" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="0" cy="10.5" r="3.3" fill="#fff" stroke="#141a3c" stroke-width="2.6"/>
+      </g></g>
+      <g t-if="fxs.includes('zzz')" t-att-transform="anchor('zzz')"><g class="bd-fx bd-fx-zzz">
+        <g class="bd-z z1"><path d="M-5 -5 H5 L-5 5 H5" fill="none" stroke="#141a3c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M-5 -5 H5 L-5 5 H5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g><g class="bd-z z2"><path d="M2.25 -19.75 H15.75 L2.25 -6.25 H15.75" fill="none" stroke="#141a3c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.25 -19.75 H15.75 L2.25 -6.25 H15.75" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g><g class="bd-z z3"><path d="M12 -39 H30 L12 -21 H30" fill="none" stroke="#141a3c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 -39 H30 L12 -21 H30" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+      </g></g>
+      <g t-if="fxs.includes('bubble')" t-att-transform="anchor('nose')"><g class="bd-fx bd-fx-bubble">
+        <circle cx="0" cy="0" r="8" fill="#bfeaff" fill-opacity=".6" stroke="#58b5e6" stroke-width="2"/>
+        <path d="M-4.4 -2.6 Q-3.4 -5 -0.6 -5.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </g></g>
+      <g t-if="fxs.includes('stars')" t-att-transform="anchor('top')"><g class="bd-fx bd-fx-stars">
+        <g class="bd-orbit">
+          <g transform="translate(-30 0)"><path d="M0 -7 Q1.54 -1.54 7 0 Q1.54 1.54 0 7 Q-1.54 1.54 -7 0 Q-1.54 -1.54 0 -7Z" fill="#ffe27a" stroke="#141a3c" stroke-width="1.6" stroke-linejoin="round"/></g>
+          <g transform="translate(30 0)"><path d="M0 -7 Q1.54 -1.54 7 0 Q1.54 1.54 0 7 Q-1.54 1.54 -7 0 Q-1.54 -1.54 0 -7Z" fill="#ffe27a" stroke="#141a3c" stroke-width="1.6" stroke-linejoin="round"/></g>
+          <g transform="translate(0 -8)"><path d="M0 -6 Q1.32 -1.32 6 0 Q1.32 1.32 0 6 Q-1.32 1.32 -6 0 Q-1.32 -1.32 0 -6Z" fill="#fff" stroke="#141a3c" stroke-width="1.4" stroke-linejoin="round"/></g>
+        </g>
+      </g></g>
+    </g>
+  </t>
+</templates>

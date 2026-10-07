@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Corre cada 30 minutos y además se dispara al apretar «Sincronizar ahora». Cada carpeta decide si le toca
+         (una vez por día por defecto), así que despertar seguido no genera trabajo de más. -->
+    <record id="cron_sync" model="ir.cron">
+        <field name="name">Buddy: sincronizar carpetas de Drive</field>
+        <field name="model_id" ref="model_buddy_source"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

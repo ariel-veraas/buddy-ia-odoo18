@@ -1,0 +1,17 @@
+.env
+.config/
+node_modules/
+__pycache__/
+.pytest_cache/
+*.pyc
+ai-service/data/*
+!ai-service/data/.gitkeep
+.venv/
+.snapshots/
+.v2-lock
+.claude/
+tests/eval/results/
+tests/eval/golden.private.json
+tests/eval/*.draft.json
+PLAN-V2.md
+MANIFEST-SHA256.json.bak

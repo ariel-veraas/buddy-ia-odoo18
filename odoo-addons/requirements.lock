@@ -1,0 +1,4 @@
+# Complete set installed on top of the Odoo 18 image. None of these has dependencies of its own.
+pypdf==6.19.0
+PyJWT==2.15.1
+packaging==26.3

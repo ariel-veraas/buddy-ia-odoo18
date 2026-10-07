@@ -1,0 +1,9 @@
+{
+  "roles": {
+    "it":      {"label": "Mesa de IT", "name": "Equipo de Mesa de IT", "contact": "it@ejemplo.test"},
+    "rrhh":    {"label": "RR.HH.", "name": "Equipo de RR.HH.", "contact": "rrhh@ejemplo.test"},
+    "ventas":  {"label": "Operaciones Comerciales", "name": "Equipo de Operaciones Comerciales", "contact": "comercial@ejemplo.test"},
+    "admin":   {"label": "Administración", "name": "Equipo de Administración", "contact": "admin@ejemplo.test"},
+    "general": {"label": "Mesa de ayuda", "name": "Mesa de ayuda interna", "contact": "ayuda@ejemplo.test"}
+  }
+}

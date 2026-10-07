@@ -1,0 +1,36 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_buddy_ticket_user,buddy.ticket usuario,model_buddy_ticket,base.group_user,1,0,1,0
+access_buddy_ticket_admin,buddy.ticket administrador,model_buddy_ticket,base.group_system,1,1,1,1
+access_buddy_ticket_manager,buddy.ticket gestor,model_buddy_ticket,buddy_ia.group_buddy_manager,1,1,1,0
+access_buddy_contact_user,buddy.contact lectura,model_buddy_contact,base.group_user,1,0,0,0
+access_buddy_contact_admin,buddy.contact administrador,model_buddy_contact,base.group_system,1,1,1,1
+access_buddy_message_deny,buddy.message sin acceso directo,model_buddy_message,base.group_system,0,0,0,0
+access_buddy_session_deny,buddy.session sin acceso directo,model_buddy_session,base.group_system,0,0,0,0
+access_buddy_usage_deny,buddy.usage sin acceso directo,model_buddy_usage,base.group_system,0,0,0,0
+access_buddy_source_user,buddy.source lectura,model_buddy_source,base.group_user,1,0,0,0
+access_buddy_source_admin,buddy.source administrador,model_buddy_source,base.group_system,1,1,1,1
+access_buddy_document_user,buddy.document lectura,model_buddy_document,base.group_user,1,0,0,0
+access_buddy_document_admin,buddy.document administrador,model_buddy_document,base.group_system,1,1,1,1
+access_buddy_chunk_user,buddy.chunk lectura,model_buddy_chunk,base.group_user,1,0,0,0
+access_buddy_chunk_admin,buddy.chunk administrador,model_buddy_chunk,base.group_system,1,1,1,1
+access_buddy_embedding_deny,buddy.embedding sin acceso directo,model_buddy_embedding,base.group_system,0,0,0,0
+access_buddy_insight_manager,buddy.insight gestor (solo lectura),model_buddy_insight,buddy_ia.group_buddy_manager,1,0,0,0
+access_buddy_insight_admin,buddy.insight administrador (solo lectura),model_buddy_insight,base.group_system,1,0,0,0
+access_buddy_feedback_manager,buddy.feedback gestor (solo lectura),model_buddy_feedback,buddy_ia.group_buddy_manager,1,0,0,0
+access_buddy_feedback_admin,buddy.feedback administrador (solo lectura),model_buddy_feedback,base.group_system,1,0,0,0
+access_buddy_digest_manager,buddy.digest gestor (solo lectura),model_buddy_digest,buddy_ia.group_buddy_manager,1,0,0,0
+access_buddy_digest_admin,buddy.digest administrador (lectura y borrado),model_buddy_digest,base.group_system,1,0,0,1
+access_buddy_journey_user,buddy.journey lectura,model_buddy_journey,base.group_user,1,0,0,0
+access_buddy_journey_manager,buddy.journey responsable,model_buddy_journey,buddy_ia.group_journey_manager,1,1,1,0
+access_buddy_journey_admin,buddy.journey administrador,model_buddy_journey,base.group_system,1,1,1,1
+access_buddy_journey_step_user,buddy.journey.step lectura,model_buddy_journey_step,base.group_user,1,0,0,0
+access_buddy_journey_step_manager,buddy.journey.step responsable,model_buddy_journey_step,buddy_ia.group_journey_manager,1,1,1,1
+access_buddy_journey_step_admin,buddy.journey.step administrador,model_buddy_journey_step,base.group_system,1,1,1,1
+access_buddy_journey_assignment_user,buddy.journey.assignment lectura,model_buddy_journey_assignment,base.group_user,1,0,0,0
+access_buddy_journey_assignment_manager,buddy.journey.assignment responsable,model_buddy_journey_assignment,buddy_ia.group_journey_manager,1,1,1,1
+access_buddy_journey_assignment_admin,buddy.journey.assignment administrador,model_buddy_journey_assignment,base.group_system,1,1,1,1
+access_buddy_journey_progress_user,buddy.journey.progress tilde propio,model_buddy_journey_progress,base.group_user,1,1,0,0
+access_buddy_journey_progress_manager,buddy.journey.progress responsable (solo lectura),model_buddy_journey_progress,buddy_ia.group_journey_manager,1,0,0,0
+access_buddy_journey_progress_admin,buddy.journey.progress administrador,model_buddy_journey_progress,base.group_system,1,1,1,1
+access_buddy_journey_assign_manager,buddy.journey.assign responsable,model_buddy_journey_assign,buddy_ia.group_journey_manager,1,1,1,1
+access_buddy_journey_assign_admin,buddy.journey.assign administrador,model_buddy_journey_assign,base.group_system,1,1,1,1

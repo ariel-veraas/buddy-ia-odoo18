@@ -1,0 +1,178 @@
+// Buddy IA: avatares (Kitsune, Mochi), aro de estado, accesorios y gestos.
+// Escrito en CSS plano (sin anidar ni mixins) a propósito: se puede abrir tal cual en un navegador para ver el arte.
+// El color principal del admin llega por --bd-primary (ver themeVars en buddy.js); de ahí salen las demás variables.
+
+// Paleta por defecto (la del celeste original, #39e6ff). themeVars() la pisa cuando el admin elige otro color.
+.o_buddy, .o_buddy_preview {
+    --bd-fur: #8cf0ff;
+    --bd-fur-lt: #d6fbff;
+    --bd-fur-dk: #2aa7c4;
+    --bd-warm: #ffb457;
+    --bd-warm-dk: #d9692a;
+    --bd-cream: #fff4e0;
+    --bd-blush: #ff8fb0;
+    --bd-mochi: #fbfeff;
+    --bd-mochi-dk: #cfe9f2;
+    --bd-leaf: #62d68b;
+    --bd-leaf-dk: #2f9e5f;
+}
+
+// ---------------------------------------------------------------- Colores del arte (siempre por clase)
+.o_buddy_avatar .c-fur { fill: var(--bd-fur); }
+.o_buddy_avatar .c-fur-dk { fill: var(--bd-fur-dk); }
+.o_buddy_avatar .c-cream { fill: var(--bd-cream); }
+.o_buddy_avatar .c-warm { fill: var(--bd-warm); }
+.o_buddy_avatar .c-blush { fill: var(--bd-blush); opacity: .75; }
+.o_buddy_avatar .c-mochi { fill: var(--bd-mochi); }
+.o_buddy_avatar .c-mochi-dk { fill: var(--bd-mochi-dk); }
+.o_buddy_avatar .c-primary { fill: var(--bd-primary, #39e6ff); }
+.o_buddy_avatar .s-fur { stroke: var(--bd-fur); }
+.o_buddy_avatar .s-fur-dk { stroke: var(--bd-fur-dk); }
+.o_buddy_avatar .s-warm-dk { stroke: var(--bd-warm-dk); }
+.o_buddy_avatar .s-primary { stroke: var(--bd-primary, #39e6ff); }
+
+// ---------------------------------------------------------------- Base del avatar
+.o_buddy_avatar {
+    display: block;
+    max-width: none;
+    overflow: visible;
+    filter: drop-shadow(0 6px 10px rgba(5, 8, 24, .35));
+}
+.o_buddy_avatar .bd-ring { transition: stroke .3s ease; }
+.o_buddy_avatar.ring-listening .bd-ring { stroke: var(--bd-cyan, #39e6ff); }
+.o_buddy_avatar.ring-thinking .bd-ring { stroke: #7c5cff; animation: bd-pulse 1.1s ease-in-out infinite; }
+.o_buddy_avatar.ring-ok .bd-ring { stroke: #46f0a0; }
+.o_buddy_avatar.ring-doubt .bd-ring { stroke: #ffc24a; }
+
+// Buddys sin disco (Kitsune, Mochi): el estado lo comunica una gotita de luz junto al personaje (.bd-status) y un
+// brillo que sigue la silueta; no hay aro ni redondel de fondo. Los personajes con disco (los que suma otro módulo) conservan su aro luminoso (.bd-ring).
+.o_buddy_avatar .bd-status .bd-dot { transition: fill .3s ease; }
+.o_buddy_avatar.ring-listening .bd-status .bd-dot { fill: var(--bd-cyan, #39e6ff); }
+.o_buddy_avatar.ring-thinking .bd-status .bd-dot { fill: #7c5cff; }
+.o_buddy_avatar.ring-thinking .bd-status { animation: bd-pulse 1.1s ease-in-out infinite; }
+.o_buddy_avatar.ring-ok .bd-status .bd-dot { fill: #46f0a0; }
+.o_buddy_avatar.ring-doubt .bd-status .bd-dot { fill: #ffc24a; }
+.o_buddy_avatar.is-loose.ring-listening .bd-buddy { filter: drop-shadow(0 0 3px var(--bd-cyan, #39e6ff)); }
+.o_buddy_avatar.is-loose.ring-thinking .bd-buddy { filter: drop-shadow(0 0 4px #7c5cff); }
+.o_buddy_avatar.is-loose.ring-ok .bd-buddy { filter: drop-shadow(0 0 3px #46f0a0); }
+.o_buddy_avatar.is-loose.ring-doubt .bd-buddy { filter: drop-shadow(0 0 3px #ffc24a); }
+.o_buddy_avatar .bd-status { transform-box: fill-box; transform-origin: 50% 50%; }
+
+// Las piezas que se mueven giran sobre su propia caja (fill-box): así no dependen de las coordenadas del dibujo.
+.o_buddy_avatar .bd-char { transform-box: fill-box; transform-origin: 50% 100%; }
+.o_buddy_avatar .bd-look { transform-box: fill-box; transform-origin: 50% 50%; }
+.o_buddy_avatar .bd-eyes { transform-box: fill-box; transform-origin: 50% 50%; animation: bd-blink 5.5s infinite; }
+.o_buddy_avatar .bd-arm.is-waving { animation: bd-wave 1.3s ease-in-out infinite; }
+.o_buddy_avatar.buddy-kitsune .bd-arm { transform-box: fill-box; transform-origin: 100% 100%; }
+.o_buddy_avatar.buddy-mochi .bd-arm { transform-box: fill-box; transform-origin: 95% 85%; }
+.o_buddy_avatar .bd-tail { transform-box: fill-box; transform-origin: 2% 88%; }
+.o_buddy_avatar .bd-ear-l { transform-box: fill-box; transform-origin: 62% 84%; }
+.o_buddy_avatar .bd-ear-r { transform-box: fill-box; transform-origin: 38% 84%; }
+.o_buddy_avatar .bd-leaf { transform-box: fill-box; transform-origin: 8% 96%; }
+.o_buddy_avatar .bd-ring-fit { transform-box: fill-box; transform-origin: 50% 50%; }
+.o_buddy_avatar .bd-fx, .o_buddy_avatar .bd-acc, .o_buddy_avatar .bd-z, .o_buddy_avatar .bd-float,
+.o_buddy_avatar .bd-spark, .o_buddy_avatar .bd-tear, .o_buddy_avatar .bd-spiral, .o_buddy_avatar .bd-heart,
+.o_buddy_avatar .bd-orbit { transform-box: fill-box; transform-origin: 50% 50%; }
+.o_buddy_avatar .bd-acc { transform-origin: 50% 100%; }
+.o_buddy_avatar .bd-fx-sweat, .o_buddy_avatar .bd-fx-question, .o_buddy_avatar .bd-fx-exclaim { transform-origin: 50% 100%; }
+
+@keyframes bd-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+@keyframes bd-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-16deg); } }
+@keyframes bd-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@keyframes bd-pop { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+
+// ---------------------------------------------------------------- Gestos en reposo (solo transform y opacity)
+// La clase g-<gesto> la pone el componente; cada animación dura menos que el gesto (ver buddy_registry.js).
+@keyframes bd-blink2 {
+    0%, 100% { transform: scaleY(1); }
+    14%, 30% { transform: scaleY(.08); }
+    22%, 38%, 60% { transform: scaleY(1); }
+    46% { transform: scaleY(.08); }
+}
+@keyframes bd-look {
+    0%, 100% { transform: translate(0, 0); }
+    16%, 38% { transform: translate(-6px, -1px); }
+    54%, 78% { transform: translate(6px, -1px); }
+}
+@keyframes bd-shimmer { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes bd-twinkle { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); } 30%, 70% { opacity: 1; transform: scale(1) rotate(25deg); } }
+@keyframes bd-heartbeat { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.22); } }
+@keyframes bd-float-up { 0% { opacity: 0; transform: translateY(8px) scale(.6); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-26px) scale(1.1); } }
+@keyframes bd-sweat { 0% { opacity: 0; transform: translateY(-6px) scale(.5); } 14% { opacity: 1; transform: translateY(0) scale(1); } 72% { opacity: 1; transform: translateY(14px); } 100% { opacity: 0; transform: translateY(20px); } }
+@keyframes bd-vein { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+@keyframes bd-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.6px); } 75% { transform: translateX(1.6px); } }
+@keyframes bd-tear { 0% { opacity: .95; transform: translateY(-2px); } 100% { opacity: 0; transform: translateY(12px); } }
+@keyframes bd-spin { to { transform: rotate(360deg); } }
+@keyframes bd-sway { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }
+@keyframes bd-glyph-pop { 0% { opacity: 0; transform: translateY(8px) scale(.3); } 55% { opacity: 1; transform: translateY(-3px) scale(1.18); } 75%, 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-6px) scale(.9); } }
+@keyframes bd-tilt { 0%, 100% { transform: rotate(0deg); } 20%, 80% { transform: rotate(-6deg); } }
+@keyframes bd-jump { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-9px) scale(.97, 1.04); } 60% { transform: translateY(0) scale(1.04, .96); } }
+@keyframes bd-yawn { 0%, 100% { transform: scale(1, 1); } 40%, 65% { transform: scale(.97, 1.07); } }
+@keyframes bd-stretch { 0%, 100% { transform: scale(1, 1); } 25%, 55% { transform: scale(.95, 1.1); } 72% { transform: scale(1.05, .95); } 86% { transform: scale(.98, 1.03); } }
+@keyframes bd-nod { 0%, 100% { transform: rotate(0deg); } 45% { transform: rotate(5deg) translateY(2px); } 60% { transform: rotate(5deg) translateY(2px); } }
+@keyframes bd-bubble { 0%, 100% { transform: scale(.45); } 55% { transform: scale(1.25); } 62% { transform: scale(1.25); } }
+@keyframes bd-z { 0% { opacity: 0; transform: translate(-6px, 8px) scale(.6); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -14px) scale(1.15); } }
+@keyframes bd-wag { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-14deg); } 75% { transform: rotate(16deg); } }
+@keyframes bd-ear-flick-l { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-14deg); } 55% { transform: rotate(6deg); } }
+@keyframes bd-ear-flick-r { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(14deg); } 55% { transform: rotate(-6deg); } }
+@keyframes bd-bounce { 0%, 100% { transform: translateY(0) scale(1.1, .88); } 25% { transform: translateY(-16px) scale(.9, 1.14); } 50% { transform: translateY(0) scale(1.14, .84); } 70% { transform: translateY(-4px) scale(.98, 1.03); } }
+@keyframes bd-jiggle { 0%, 100% { transform: scale(1, 1); } 20% { transform: scale(1.1, .9); } 40% { transform: scale(.92, 1.1); } 60% { transform: scale(1.06, .95); } 80% { transform: scale(.97, 1.04); } }
+@keyframes bd-leaf-wiggle { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-12deg); } 65% { transform: rotate(8deg); } }
+@keyframes bd-acc-pop {
+    0% { opacity: 0; transform: translateY(-22px) scale(.7); }
+    9% { opacity: 1; transform: translateY(2px) scale(1.06); }
+    13% { transform: translateY(0) scale(1); }
+    86% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-14px) scale(.9); }
+}
+
+.o_buddy_avatar.g-blink .bd-eyes { animation: bd-blink2 1.2s ease-in-out 1; }
+.o_buddy_avatar.g-look .bd-look { animation: bd-look 2.6s ease-in-out 1; }
+.o_buddy_avatar.g-sparkle .bd-eyes { animation: bd-shimmer .6s ease-in-out 4; }
+.o_buddy_avatar.g-sparkle .bd-spark { animation: bd-twinkle 1.1s ease-in-out infinite; }
+.o_buddy_avatar.g-sparkle .bd-spark.s2 { animation-delay: .25s; }
+.o_buddy_avatar.g-sparkle .bd-spark.s3 { animation-delay: .5s; }
+.o_buddy_avatar.g-sparkle .bd-spark.s4 { animation-delay: .75s; }
+.o_buddy_avatar.g-heart .bd-heart { animation: bd-heartbeat .7s ease-in-out infinite; }
+.o_buddy_avatar.g-heart .bd-float { animation: bd-float-up 1.6s ease-out infinite; }
+.o_buddy_avatar.g-heart .bd-float.f2 { animation-delay: .5s; }
+.o_buddy_avatar.g-heart .bd-float.f3 { animation-delay: 1s; }
+.o_buddy_avatar.g-sweat .bd-fx-sweat { animation: bd-sweat 2.4s ease-in 1 both; }
+.o_buddy_avatar.g-vein .bd-fx-vein { animation: bd-vein .5s ease-in-out 4; }
+.o_buddy_avatar.g-vein .bd-char { animation: bd-shake .12s linear 14; }
+.o_buddy_avatar.g-tears .bd-tear { animation: bd-tear 1.1s ease-in infinite; }
+.o_buddy_avatar.g-dizzy .bd-spiral { animation: bd-spin 1s linear infinite; }
+.o_buddy_avatar.g-dizzy .bd-orbit { animation: bd-spin 1.6s linear infinite; }
+.o_buddy_avatar.g-dizzy .bd-char { animation: bd-sway 1.5s ease-in-out 2; }
+.o_buddy_avatar.g-question .bd-fx-question { animation: bd-glyph-pop 2.2s ease-out 1 both; }
+.o_buddy_avatar.g-question .bd-char { animation: bd-tilt 2s ease-in-out 1; }
+.o_buddy_avatar.g-exclaim .bd-fx-exclaim { animation: bd-glyph-pop 1.8s ease-out 1 both; }
+.o_buddy_avatar.g-exclaim .bd-char { animation: bd-jump .6s ease-out 1; }
+.o_buddy_avatar.g-yawn .bd-char { animation: bd-yawn 2.6s ease-in-out 1; }
+.o_buddy_avatar.g-stretch .bd-char { animation: bd-stretch 2.4s ease-in-out 1; }
+.o_buddy_avatar.g-sleep .bd-char { animation: bd-nod 3s ease-in-out infinite; }
+.o_buddy_avatar.g-sleep .bd-fx-bubble { animation: bd-bubble 2.4s ease-in-out infinite; }
+.o_buddy_avatar.g-sleep .bd-z { animation: bd-z 2s ease-in-out infinite; }
+.o_buddy_avatar.g-sleep .bd-z.z2 { animation-delay: .6s; }
+.o_buddy_avatar.g-sleep .bd-z.z3 { animation-delay: 1.2s; }
+.o_buddy_avatar.g-tail .bd-tail { animation: bd-wag .5s ease-in-out 5; }
+.o_buddy_avatar.g-ears .bd-ear-l { animation: bd-ear-flick-l .7s ease-in-out 3; }
+.o_buddy_avatar.g-ears .bd-ear-r { animation: bd-ear-flick-r .7s ease-in-out 3; animation-delay: .2s; }
+.o_buddy_avatar.g-bounce .bd-char { animation: bd-bounce .7s ease-in-out 3; }
+.o_buddy_avatar.g-bounce .bd-leaf { animation: bd-leaf-wiggle .7s ease-in-out 3; }
+.o_buddy_avatar.g-jiggle .bd-char { animation: bd-jiggle 1s ease-in-out 2; }
+.o_buddy_avatar.g-spin .bd-ring { transform-box: fill-box; transform-origin: 50% 50%; animation: bd-spin 1.1s ease-in-out 2; }
+.o_buddy_avatar.g-mustache .bd-acc.is-temp,
+.o_buddy_avatar.g-wizard .bd-acc.is-temp,
+.o_buddy_avatar.g-shades .bd-acc.is-temp { animation: bd-acc-pop 3.8s ease both; }
+
+// Con "reducir movimiento" el programador no dispara gestos; esto cubre el caso de la vista previa de los ajustes,
+// donde se pueden probar a mano: se ve el gesto quieto, sin movimiento.
+@media (prefers-reduced-motion: reduce) {
+    .o_buddy_avatar .bd-char, .o_buddy_avatar .bd-look, .o_buddy_avatar .bd-eyes, .o_buddy_avatar .bd-tail,
+    .o_buddy_avatar .bd-ear, .o_buddy_avatar .bd-leaf, .o_buddy_avatar .bd-fx, .o_buddy_avatar .bd-acc,
+    .o_buddy_avatar .bd-z, .o_buddy_avatar .bd-float, .o_buddy_avatar .bd-spark, .o_buddy_avatar .bd-tear,
+    .o_buddy_avatar .bd-spiral, .o_buddy_avatar .bd-heart, .o_buddy_avatar .bd-orbit {
+        animation: none !important;
+    }
+}

@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_buddy" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.buddy</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="95"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Buddy IA" name="buddy_ia" groups="base.group_system">
+
+                    <block title="Para empezar" name="buddy_start">
+                        <setting string="1. Proveedor de IA" help="Elegí el proveedor y pegá la clave de API (más abajo, en «Inteligencia artificial»). Con OpenAI y «Otro» escribí también el modelo.">
+                            <field name="buddy_ready_ai" readonly="1"/>
+                        </setting>
+                        <setting string="2. Google Drive conectado" help="Subí el archivo .json de la cuenta de servicio o pegá su contenido (más abajo, en «Google Drive»).">
+                            <field name="buddy_ready_drive" readonly="1"/>
+                        </setting>
+                        <setting string="3. Una carpeta con grupo asignado" help="Conectá una carpeta de Drive y elegí quiénes pueden consultarla.">
+                            <field name="buddy_ready_source" readonly="1"/>
+                            <div class="mt8">
+                                <button name="action_buddy_open_sources" type="object" string="Abrir carpetas de Drive" class="btn-link"/>
+                            </div>
+                        </setting>
+                        <setting string="4. Documentos leídos" help="En la carpeta, apretá «Sincronizar ahora» y esperá unos minutos.">
+                            <field name="buddy_ready_documents" readonly="1"/>
+                        </setting>
+                        <setting string="5. Contactos con correo real"
+                                 help="Cuando el buddy no sabe algo, le dice a la persona a quién escribir. Cambiá los correos de ejemplo (…@ejemplo.test) por los reales, o borrá los contactos que no uses.">
+                            <field name="buddy_ready_contacts" readonly="1"/>
+                            <div class="text-muted"><field name="buddy_contacts_text" readonly="1"/></div>
+                            <div class="mt8">
+                                <button name="action_buddy_open_contacts" type="object" string="Abrir contactos" class="btn-link"/>
+                            </div>
+                        </setting>
+                        <setting string="6. Conexión probada con éxito"
+                                 help="Revisa que la IA, Drive y los documentos funcionen juntos, y te muestra los modelos que tu cuenta puede usar. Se guardan los cambios antes de probar.">
+                            <field name="buddy_ready_test" readonly="1"/>
+                            <div class="text-muted"><field name="buddy_last_test_text" readonly="1"/></div>
+                            <div class="mt8 text-danger" invisible="not buddy_failures_text">
+                                <field name="buddy_failures_text" readonly="1"/>
+                            </div>
+                            <div class="mt8" invisible="not buddy_last_test_detail">
+                                <strong>Qué dijo la última prueba:</strong>
+                                <field name="buddy_last_test_detail" readonly="1" class="d-block"/>
+                            </div>
+                            <div class="mt8">
+                                <button name="action_buddy_test_connection" type="object" string="Probar conexión" class="btn-primary"/>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Inteligencia artificial" name="buddy_model">
+                        <setting string="Proveedor" help="Quién redacta las respuestas. Necesitás una cuenta y una clave de API de ese proveedor.">
+                            <field name="buddy_provider"/>
+                            <div class="mt8" invisible="buddy_provider != 'custom'">
+                                <field name="buddy_api_base" placeholder="https://mi-servidor/v1"/>
+                            </div>
+                        </setting>
+                        <setting string="Clave de API" help="Se guarda en el servidor y no se vuelve a mostrar. Para cambiarla, pegá la nueva.">
+                            <div class="text-success" invisible="not buddy_api_key_loaded">Clave cargada.</div>
+                            <field name="buddy_api_key_input" password="True" placeholder="Pegá acá la clave de API" autocomplete="new-password"/>
+                            <div class="mt8" invisible="not buddy_api_key_loaded">
+                                <button name="action_buddy_clear_api_key" type="object" string="Quitar la clave" class="btn-link"
+                                        confirm="¿Quitar la clave de API? El buddy dejará de responder hasta que cargues otra."/>
+                            </div>
+                        </setting>
+                        <setting string="Modelo" help="El nombre exacto del modelo, como lo muestra tu proveedor. «Probar conexión» te lista los disponibles en tu cuenta.">
+                            <field name="buddy_chat_model" placeholder="Nombre del modelo"/>
+                            <div class="text-muted mt8" invisible="buddy_chat_model or not buddy_model_hint">
+                                <field name="buddy_model_hint" readonly="1"/>
+                            </div>
+                            <div class="text-muted mt8" invisible="buddy_provider != 'gemini'">
+                                Con Gemini recomendamos gemini-2.5-flash: la versión «lite» es más barata pero inventa más.
+                            </div>
+                            <div class="alert alert-warning mt8" role="alert" invisible="buddy_chat_model or buddy_model_hint">
+                                Todavía no escribiste un modelo. Sin modelo el buddy no puede responder.
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Google Drive" name="buddy_drive">
+                        <setting string="Cómo conseguir la clave de Google (unos 10 minutos)" help="Buddy no entra a tu Drive con tu usuario: usa una «cuenta robot» de Google que solo ve lo que le compartas, en modo lectura. Los nombres de los menús de Google cambian de vez en cuando: si no encontrás uno, usá el buscador de la consola.">
+                            <ol class="mb-2">
+                                <li>Entrá a <strong>console.cloud.google.com</strong> con tu cuenta de Google y creá un proyecto nuevo (por ejemplo «Buddy IA»). No hace falta tarjeta.</li>
+                                <li>En «APIs y servicios → Biblioteca» buscá <strong>Google Drive API</strong> y tocá «Habilitar».</li>
+                                <li>En «IAM y administración → Cuentas de servicio» tocá «Crear cuenta de servicio», ponele un nombre (por ejemplo «buddy-ia») y terminá <strong>sin darle ningún rol</strong>.</li>
+                                <li>Abrí esa cuenta, andá a «Claves → Agregar clave → Crear clave nueva → JSON»: se descarga un archivo <strong>.json</strong>. Es como una contraseña: no lo compartas.</li>
+                                <li>Subilo en el cuadro de abajo (o pegá su contenido) y tocá «Guardar». Buddy te muestra el correo de la cuenta (termina en <em>iam.gserviceaccount.com</em>) con un botón para copiarlo.</li>
+                                <li>En Google Drive, compartí cada carpeta con ese correo con el rol <strong>«Lector»</strong> y destildá «Notificar». Después, en Buddy → Carpetas de Drive, pegá el enlace de la carpeta y elegí quién puede consultarla.</li>
+                            </ol>
+                            <p class="text-muted mb-0">Si Google dice «Service account key creation is disabled» (la creación de claves está inhabilitada), tu organización de Google Workspace la bloquea: hay que pedirle a quien la administra que levante esa restricción para este proyecto y volver a intentar.</p>
+                        </setting>
+                        <setting string="Cuenta de servicio" help="La clave se guarda en el servidor y no se vuelve a mostrar. Subí el archivo .json o pegá su contenido (una de las dos formas).">
+                            <div invisible="not buddy_drive_loaded">
+                                <div class="text-success">Clave cargada.</div>
+                                <div>Compartí cada carpeta de Drive (rol «Lector») con este correo:</div>
+                                <div class="d-flex align-items-center gap-2"><strong><field name="buddy_drive_email" readonly="1" widget="CopyClipboardChar"/></strong></div>
+                            </div>
+                            <div class="text-muted mt8" invisible="buddy_drive_loaded">
+                                Todavía no cargaste la clave. Seguí los pasos de al lado y subí acá el archivo .json.
+                            </div>
+                            <div class="mt8">
+                                <label for="buddy_drive_key_file" class="fw-bold">Subir el archivo .json</label>
+                                <div><field name="buddy_drive_key_file" filename="buddy_drive_key_filename" widget="binary"/></div>
+                                <field name="buddy_drive_key_filename" invisible="1"/>
+                            </div>
+                            <div class="mt8">
+                                <label for="buddy_drive_key_input" class="fw-bold">…o pegar su contenido</label>
+                                <field name="buddy_drive_key_input" placeholder="Pegá acá el contenido del archivo .json de la clave" class="w-100"/>
+                            </div>
+                            <div class="text-muted mt4">Usá una de las dos formas y tocá «Guardar». Después de guardar, el archivo no queda en la pantalla.</div>
+                            <div class="mt8" invisible="not buddy_drive_loaded">
+                                <button name="action_buddy_clear_drive_key" type="object" string="Quitar la clave" class="btn-link"
+                                        confirm="¿Quitar la clave de Drive? Se dejan de sincronizar las carpetas; lo ya leído se conserva."/>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Búsqueda por significado" name="buddy_semantic">
+                        <setting string="Buscar también por significado" help="Buddy encuentra la respuesta aunque tu pregunta use otras palabras que el documento (por ejemplo, «¿cuánto demoran en arreglar algo grave?» llega al documento que dice «tiempo de resolución urgente»). Para eso le pide al proveedor de IA una huella numérica del significado de cada fragmento de tus documentos. Es opcional y viene apagada. Claude (Anthropic) no la ofrece: hace falta Gemini, OpenAI u otro proveedor compatible.">
+                            <field name="buddy_semantic_enabled"/>
+                            <div class="alert alert-warning mt8" role="alert">
+                                <strong>Qué se envía al proveedor.</strong> Al activarla, Buddy manda el texto de <strong>todos</strong> los documentos de
+                                <strong>todas</strong> las carpetas conectadas (también las de acceso restringido), no solo los que se usan en cada respuesta.
+                                Los permisos por grupo se siguen respetando al responder: cada persona recibe solo lo de sus carpetas. Activala solo si tu
+                                empresa acepta que ese contenido pase por tu proveedor. Si la apagás, Buddy vuelve a buscar solo por palabras.
+                            </div>
+                            <div class="mt8" invisible="not buddy_semantic_status"><field name="buddy_semantic_status" readonly="1" class="w-100"/></div>
+                            <div class="mt8">
+                                <button name="action_buddy_purge_semantic" type="object" string="Borrar los datos de significado" class="btn-link text-danger"
+                                        confirm="¿Borrar los vectores de todos los fragmentos? Los documentos no se tocan. Si la búsqueda por significado sigue activa, se vuelven a calcular."/>
+                            </div>
+                        </setting>
+                        <setting string="Modelo de embeddings" invisible="not buddy_show_advanced"
+                                 help="El modelo del proveedor que convierte el texto en números. Si lo cambiás, Buddy vuelve a calcular todos los vectores (no se mezclan modelos).">
+                            <field name="buddy_embedding_model" placeholder="Vacío = el de siempre para tu proveedor"/>
+                            <div class="text-muted"><field name="buddy_embedding_model_hint" readonly="1"/></div>
+                        </setting>
+                        <setting string="Tamaño del vector" invisible="not buddy_show_advanced"
+                                 help="Cuántos números describen cada fragmento (de 8 a 3072; 0 = el de fábrica para tu proveedor). Más números dan más precisión pero más espacio y búsquedas más lentas; cambiarlo recalcula todos los vectores.">
+                            <field name="buddy_embedding_dims"/>
+                        </setting>
+                    </block>
+
+                    <block title="Tickets" name="buddy_tickets">
+                        <setting string="Responsable de tickets" help="Quien atiende los tickets que crea el buddy. Cuando se crea uno, le llega una tarea (y un aviso por correo) y queda anotado en el ticket. Al guardar, esa persona recibe el permiso «Gestor de Buddy»: ve todos los tickets y las estadísticas, pero no la configuración.">
+                            <field name="buddy_ticket_user_id" options="{'no_create': True, 'no_open': True}" placeholder="Nadie (sin aviso)"/>
+                        </setting>
+                    </block>
+
+                    <block title="Onboarding" name="buddy_journeys">
+                        <setting string="Recordatorios de onboarding" help="Cada día, si alguien tiene tareas de su recorrido para hoy o atrasadas, Buddy le crea una sola actividad en Odoo que las resume (nunca una por tarea ni repetidas). Apagalo si preferís que solo vean sus tareas en el chat.">
+                            <field name="buddy_journey_reminders"/>
+                        </setting>
+                        <setting string="Adaptar las respuestas a la etapa de cada persona" help="Buddy le cuenta al servicio de IA en qué etapa del recorrido está la persona («su semana 1 del recorrido X») para que explique con el detalle justo. Se envía solo esa línea con el nombre del recorrido: nunca el nombre de la persona ni sus datos. Viene apagado.">
+                            <field name="buddy_journey_stage"/>
+                        </setting>
+                        <div class="px-4 pb-2">
+                            <button name="%(buddy_ia.buddy_journey_action)d" type="action" class="btn-link" icon="oi-arrow-right" string="Abrir los recorridos de onboarding"/>
+                            <div class="text-muted">Quien tenga el permiso «Responsable de onboarding» también los arma desde el menú Buddy → Onboarding.</div>
+                        </div>
+                    </block>
+
+                    <block title="Sugerencias, avisos y resumen semanal" name="buddy_proactive">
+                        <setting string="Sugerencias a medida en el chat" help="Los botones de sugerencia del chat muestran las preguntas de las tareas de onboarding de cada persona y los temas que más consulta la empresa (hasta tres), y se completan con los fijos hasta cuatro. Los temas son solo títulos de documentos que esa persona puede leer, y solo aparecen cuando al menos 5 consultas distintas los citaron (nunca la pregunta de nadie). No consulta al servicio de IA.">
+                            <field name="buddy_proactive_chips"/>
+                        </setting>
+                        <setting string="Aviso de tareas pendientes" help="Si alguien tiene tareas de onboarding para hoy o atrasadas, el buddy muestra un globito chico, una vez por día como mucho y solo con el chat cerrado y la pestaña a la vista. Se puede cerrar, se va solo a los 15 segundos y al tocarlo abre «Tus tareas de hoy». Necesita los gestos prendidos (más abajo): si los apagás, o si la persona pidió «reducir movimiento» en su equipo, no avisa, y igual ve el puntito amarillo del botón del chat.">
+                            <field name="buddy_proactive_nudge"/>
+                            <div class="mt8 text-warning" invisible="buddy_idle_enabled or not buddy_proactive_nudge">Los gestos están apagados (más abajo): el aviso no va a aparecer.</div>
+                        </setting>
+                        <setting string="Resumen semanal «Qué falta documentar»" help="Los lunes Buddy arma un resumen de qué conviene documentar o corregir: preguntas sin respuesta, documentos con votos 👎 o que se contradicen, documentos que nadie cita, carpetas con errores y onboarding atrasado. Cada parte dice qué hacer. No usa inteligencia artificial ni muestra quién preguntó o votó, y avisa con una actividad de Odoo (nunca un correo).">
+                            <field name="buddy_digest_enabled"/>
+                            <div class="mt8" invisible="not buddy_digest_enabled">
+                                <label for="buddy_digest_notify" class="o_form_label"/>
+                                <field name="buddy_digest_notify"/>
+                            </div>
+                            <div class="mt8">
+                                <button name="action_buddy_open_digests" type="object" string="Abrir los resúmenes" class="btn-link" icon="oi-arrow-right"/>
+                            </div>
+                            <div>
+                                <button name="action_buddy_digest_now" type="object" string="Generar el resumen ahora" class="btn-link" icon="oi-arrow-right"/>
+                                <div class="text-muted">Arma uno con los datos de los últimos 7 días, hasta hoy, y lo abre. No avisa a nadie.</div>
+                            </div>
+                            <div class="mt8 text-muted">Los resúmenes se borran con las estadísticas (mismo plazo de «Conservar estadísticas»).</div>
+                        </setting>
+                    </block>
+
+                    <block title="Estadísticas y costos" name="buddy_insights">
+                        <setting string="Uso reciente" help="Las consultas que atendió el buddy en los últimos 30 días. Los tokens son lo que informa el proveedor (algunos no lo informan).">
+                            <div><field name="buddy_usage_text" readonly="1"/></div>
+                            <div class="text-danger" invisible="not buddy_failures_text"><field name="buddy_failures_text" readonly="1"/></div>
+                            <div class="mt8">
+                                <button name="action_buddy_open_unanswered" type="object" string="Ver preguntas sin respuesta" class="btn-link"/>
+                            </div>
+                        </setting>
+                        <setting string="Guardar preguntas" help="Siempre se guardan las preguntas que el buddy no supo responder (sin el nombre de quien las hizo), para que sepas qué documentación falta. Al votar 👎, quien tilda «Incluir mi pregunta» suma la suya. Si activás esto, se guardan además TODAS las preguntas, también las respondidas, y esa casilla deja de aparecer en el chat. Pueden contener datos personales: activalo solo si lo necesitás y avisale a tu equipo.">
+                            <field name="buddy_insight_questions"/>
+                        </setting>
+                        <setting string="Conservar estadísticas (días)" help="Pasado este tiempo, las estadísticas, los votos 👍/👎 y las preguntas guardadas se borran solas. Por defecto 90 días, hasta 3650.">
+                            <field name="buddy_insight_days"/>
+                            <div class="mt8">
+                                <button name="action_buddy_delete_insights" type="object" string="Borrar estadísticas y preguntas ahora" class="btn-link text-danger"
+                                        confirm="¿Borrar todas las estadísticas, los votos 👍/👎 y las preguntas guardadas? No se puede deshacer."/>
+                            </div>
+                        </setting>
+                        <setting string="Precios por millón de tokens (USD)" help="Para estimar el costo. Copialos de la lista de precios de tu proveedor. Si los dejás en 0 no se calcula ni se muestra ningún costo.">
+                            <div class="d-flex align-items-center gap-2"><span class="w-25">Entrada</span><field name="buddy_price_in"/></div>
+                            <div class="d-flex align-items-center gap-2 mt4"><span class="w-25">Salida</span><field name="buddy_price_out"/></div>
+                        </setting>
+                    </block>
+
+                    <block title="Apariencia y textos" name="buddy_identity">
+                        <setting string="Nombre del buddy"><field name="buddy_name"/></setting>
+                        <setting string="Nombre de la empresa" help="Se usa en el saludo y en las instrucciones del buddy."><field name="buddy_company"/></setting>
+                        <setting string="Subtítulo" help="Frase corta debajo del nombre, en la cabecera del chat. Vacío = «Tu guía en Odoo».">
+                            <field name="buddy_tagline" placeholder="Tu guía en Odoo"/>
+                        </setting>
+                        <setting string="Saludo" help="Lo que dice el globito la primera vez. Escribí {nombre} para incluir el nombre de la persona. Vacío = saludo estándar.">
+                            <field name="buddy_greeting" placeholder="¡Hola, {nombre}! ¿Te ayudo con algo?"/>
+                        </setting>
+                        <setting string="Sugerencias iniciales" help="Hasta 4 preguntas que aparecen como botones al abrir el chat. Si las dejás todas vacías se usan las estándar.">
+                            <div><field name="buddy_suggestion_1" placeholder="Soy nuevo, ¿por dónde empiezo?"/></div>
+                            <div class="mt4"><field name="buddy_suggestion_2" placeholder="¿A quién le pregunto por un tema puntual?"/></div>
+                            <div class="mt4"><field name="buddy_suggestion_3" placeholder="Necesito ayuda de IT"/></div>
+                            <div class="mt4"><field name="buddy_suggestion_4"/></div>
+                        </setting>
+                        <setting string="Color principal" help="Color de los botones y de los globos de quien escribe, en formato #RRGGBB. Dejalo vacío para usar el celeste original.">
+                            <div class="d-flex align-items-center gap-2">
+                                <field name="buddy_primary_color" widget="color"/>
+                                <field name="buddy_primary_color" placeholder="#39e6ff"/>
+                            </div>
+                        </setting>
+                        <setting string="Personaje" class="o_buddy_wide" help="Quién es tu buddy: Kitsune es un zorrito espíritu y Mochi una bolita blanda. Toma el color principal de arriba. Abajo ves cómo queda antes de guardar.">
+                            <field name="buddy_character" widget="buddy_character_picker"/>
+                        </setting>
+                        <setting string="Accesorio" help="Un accesorio fijo que el buddy lleva siempre puesto, o ninguno. Los accesorios que se pone solo cuando está inactivo (bigote, sombrero de mago, lentes de sol) no aparecen si ya lleva uno que ocupa el mismo lugar.">
+                            <field name="buddy_accessory" widget="buddy_chips"/>
+                        </setting>
+                        <setting string="Vista previa" class="o_buddy_wide" help="Es el mismo dibujo que ven tus compañeros. Cambia al elegir, sin guardar; probá las expresiones y los gestos con los botones.">
+                            <field name="buddy_character" widget="buddy_preview" readonly="1" nolabel="1"/>
+                        </setting>
+                        <setting string="Ocultar el buddy a todos" help="Apaga el widget para todos los usuarios sin desinstalar nada. Cada persona también puede ocultarlo para ella.">
+                            <field name="buddy_hidden"/>
+                        </setting>
+                    </block>
+
+                    <block title="Gestos del buddy" name="buddy_gestures">
+                        <setting string="Gestos cuando está inactivo" help="Si nadie lo usa, el buddy hace gestos de vez en cuando (parpadea, bosteza, se duerme, se pone un sombrero...). Nunca los hace mientras el chat está ocupado, la pestaña está oculta o la persona pidió «reducir movimiento» en su sistema, y se cortan apenas alguien lo usa.">
+                            <field name="buddy_idle_enabled"/>
+                        </setting>
+                        <setting string="Frecuencia" invisible="not buddy_idle_enabled"
+                                 help="Poco: espera 1 minuto de quietud y después un gesto cada 2 a 4 minutos. Normal: 30 segundos de quietud y un gesto cada 45 a 90 segundos. Mucho: 12 segundos de quietud y un gesto cada 15 a 40 segundos. Con el chat abierto solo actúa si pasó al menos 1 minuto sin usarlo.">
+                            <field name="buddy_idle_frequency" widget="buddy_chips"/>
+                        </setting>
+                        <setting string="Qué gestos hace" invisible="not buddy_idle_enabled"
+                                 help="Expresiones: parpadeo, mirar alrededor, ojos brillantes o de corazón, gota de sudor, venita de enojo, lagrimitas, mareo, signos de pregunta y exclamación, y los propios de cada personaje (cola, orejas, rebotes). Accesorios: se pone y se saca un bigote, un sombrero de mago o lentes de sol. Sueño: bosteza, se estira y se duerme.">
+                            <div><field name="buddy_idle_expressions"/> <label for="buddy_idle_expressions"/></div>
+                            <div><field name="buddy_idle_accessories"/> <label for="buddy_idle_accessories"/></div>
+                            <div><field name="buddy_idle_sleep"/> <label for="buddy_idle_sleep"/></div>
+                        </setting>
+                    </block>
+
+                    <block title="Instrucciones de la empresa" name="buddy_instructions">
+                        <setting string="Cómo habla" help="El español que usa el buddy en sus respuestas. Las «Instrucciones de la empresa» de abajo se suman a esta opción: sirven para el tono, el vocabulario o a quién derivar.">
+                            <field name="buddy_dialect"/>
+                        </setting>
+                        <setting string="Cómo tiene que responder tu buddy" help="Texto libre que se suma a las instrucciones del buddy: tono, vocabulario, a quién derivar, qué no responder. Hasta 1500 caracteres. No puede cambiar las reglas fijas del buddy (que responde solo con la documentación).">
+                            <field name="buddy_extra_instructions" class="w-100" placeholder="Ej.: Tratá a todos de vos. Si preguntan por sueldos, derivá siempre a RR.HH."/>
+                        </setting>
+                    </block>
+
+                    <block title="Sinónimos de la empresa" name="buddy_synonyms">
+                        <setting string="Palabras que significan lo mismo para tu empresa" help="Un grupo por línea, con las palabras separadas por comas. Si alguien pregunta con una palabra, Buddy también busca las otras del grupo. Buddy ya sabe que ticket, solicitud, pedido, incidente, caso y requerimiento van juntos. Hasta 40 grupos de 12 palabras; sin símbolos.">
+                            <field name="buddy_synonyms" class="w-100" placeholder="vacaciones, licencia, días libres&#10;sueldo, haberes, recibo de sueldo"/>
+                        </setting>
+                    </block>
+
+                    <block title="Privacidad" name="buddy_privacy">
+                        <setting string="Retención del historial (días)" help="Cada conversación se guarda hasta esta cantidad de días después de su último mensaje y después se borra sola. 0 = no borrar por inactividad. En todos los casos se borra lo escrito hace más de 180 días.">
+                            <field name="buddy_retention_days"/>
+                        </setting>
+                        <setting string="Borrar todas las conversaciones" help="Borra el historial de todos los empleados y cada persona empieza una conversación nueva. Usalo, por ejemplo, si una carpeta con información sensible se compartió por error. No se puede deshacer.">
+                            <div class="mt8">
+                                <button name="action_buddy_delete_all_conversations" type="object" string="Borrar todas las conversaciones" class="btn-danger"
+                                        confirm="¿Borrar las conversaciones de TODOS los empleados? No se puede deshacer."/>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Límites y capacidad" name="buddy_capacity">
+                        <setting string="Consultas por día (toda la empresa)" help="Tope de consultas que Buddy atiende en 24 horas, sumando a todas las personas (por defecto 1000). Es el freno contra un gasto inesperado del proveedor: al llegar, Buddy avisa con amabilidad y se reanuda solo cuando pasan las 24 horas. Cada persona, además, tiene su propio tope diario (en «Avanzado»).">
+                            <field name="buddy_max_daily_total"/>
+                        </setting>
+                        <setting string="Costo por día (USD, toda la empresa)" help="Opcional. Tope de costo estimado en 24 horas; 0 = sin tope. Necesita los precios por millón de tokens (bloque «Estadísticas y costos») y solo cuenta lo que el proveedor informa.">
+                            <field name="buddy_max_daily_cost"/>
+                        </setting>
+                        <setting string="Consultas simultáneas" help="Cuántas consultas puede estar respondiendo Buddy al mismo tiempo, sumando a todas las personas (de 1 a 100, por defecto 3). Cada una ocupa un proceso del servidor hasta 35 segundos. Si se supera, la persona recibe un aviso amable y no gasta su cuota: subilo solo si tu servidor tiene procesos de sobra.">
+                            <field name="buddy_max_concurrent"/>
+                        </setting>
+                    </block>
+
+                    <block title="Avanzado" name="buddy_advanced">
+                        <setting string="Mostrar opciones avanzadas" help="Solo hace falta tocarlas si algo no anda bien o si te lo pide quien instaló el sistema.">
+                            <field name="buddy_show_advanced"/>
+                        </setting>
+                        <setting string="Sincronizar Drive cada (horas)" invisible="not buddy_show_advanced"
+                                 help="Cada cuánto Buddy vuelve a leer tus carpetas para enterarse de los cambios. De 1 a 168 horas. Siempre podés sincronizar a mano.">
+                            <field name="buddy_sync_hours"/>
+                        </setting>
+                        <setting string="Fragmentos por consulta" invisible="not buddy_show_advanced"
+                                 help="Cuántos fragmentos de la documentación revisa para responder (de 1 a 10, por defecto 6). A cada uno se le suman los vecinos que entren en el presupuesto de texto. Más fragmentos dan respuestas más completas, pero más lentas y más caras.">
+                            <field name="buddy_top_k"/>
+                        </setting>
+                        <setting string="Consultas por minuto y por persona" invisible="not buddy_show_advanced"
+                                 help="Freno para que nadie gaste de más el proveedor de IA. Mínimo 1.">
+                            <field name="buddy_rate_per_minute"/>
+                        </setting>
+                        <setting string="Consultas por día y por persona" invisible="not buddy_show_advanced"
+                                 help="Tope diario por persona. Mínimo 1.">
+                            <field name="buddy_rate_per_day"/>
+                        </setting>
+                        <setting string="Consultas para dejar de ser 'nuevo'" invisible="not buddy_show_advanced"
+                                 help="Mientras una persona haya hecho menos consultas que este número, el buddy le explica con más detalle.">
+                            <field name="buddy_new_user_turns"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- «Buddy > Configuración»: abre Ajustes directamente en la sección de Buddy (solo administradores). -->
+    <record id="buddy_settings_action" model="ir.actions.act_window">
+        <field name="name">Configuración de Buddy</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'buddy_ia', 'bin_size': False}</field>
+    </record>
+    <menuitem id="buddy_menu_settings" name="Configuración" parent="buddy_menu_root" action="buddy_settings_action"
+              sequence="90" groups="base.group_system"/>
+</odoo>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Contactos de ejemplo: editalos en Buddy → Contactos. noupdate: tus cambios no se pisan al actualizar. -->
+    <data noupdate="1">
+        <record id="buddy_contact_general" model="buddy.contact">
+            <field name="sequence">1</field><field name="code">general</field><field name="label">Mesa de ayuda</field>
+            <field name="name">Mesa de ayuda interna</field><field name="email">ayuda@ejemplo.test</field>
+        </record>
+        <record id="buddy_contact_it" model="buddy.contact">
+            <field name="sequence">2</field><field name="code">it</field><field name="label">Mesa de IT</field>
+            <field name="name">Equipo de Mesa de IT</field><field name="email">it@ejemplo.test</field>
+        </record>
+        <record id="buddy_contact_rrhh" model="buddy.contact">
+            <field name="sequence">3</field><field name="code">rrhh</field><field name="label">RR.HH.</field>
+            <field name="name">Equipo de RR.HH.</field><field name="email">rrhh@ejemplo.test</field>
+        </record>
+        <record id="buddy_contact_ventas" model="buddy.contact">
+            <field name="sequence">4</field><field name="code">ventas</field><field name="label">Operaciones Comerciales</field>
+            <field name="name">Equipo de Operaciones Comerciales</field><field name="email">comercial@ejemplo.test</field>
+        </record>
+        <record id="buddy_contact_admin" model="buddy.contact">
+            <field name="sequence">5</field><field name="code">admin</field><field name="label">Administración</field>
+            <field name="name">Equipo de Administración</field><field name="email">admin@ejemplo.test</field>
+        </record>
+    </data>
+
+    <record id="buddy_cron_purge_messages" model="ir.cron">
+        <field name="name">Buddy: borrar conversaciones vencidas</field>
+        <field name="model_id" ref="model_buddy_message"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_purge()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="buddy_cron_purge_insight" model="ir.cron">
+        <field name="name">Buddy: borrar estadísticas y preguntas vencidas</field>
+        <field name="model_id" ref="model_buddy_insight"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_purge()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="buddy_cron_purge_usage" model="ir.cron">
+        <field name="name">Buddy: limpiar reservas de consumo vencidas</field>
+        <field name="model_id" ref="model_buddy_usage"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_purge()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="buddy_source_view_list" model="ir.ui.view">
+        <field name="name">buddy.source.list</field>
+        <field name="model">buddy.source</field>
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+        <field name="arch" type="xml">
+            <list decoration-muted="not active">
+                <field name="name"/>
+                <field name="group_ids" widget="many2many_tags"/>
+                <field name="document_count"/>
+                <field name="semantic_summary" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'ok'" decoration-danger="state == 'error'"
+                       decoration-info="state in ('queued', 'syncing')"/>
+                <field name="last_sync"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="buddy_source_view_form" model="ir.ui.view">
+        <field name="name">buddy.source.form</field>
+        <field name="model">buddy.source</field>
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_sync" type="object" string="Sincronizar ahora" class="btn-primary" groups="base.group_system"
+                            invisible="not id or state in ('queued', 'syncing')"/>
+                    <button name="action_refresh" type="object" string="Actualizar estado" icon="fa-refresh" groups="base.group_system"
+                            invisible="not id or state not in ('queued', 'syncing')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="never,queued,syncing,ok"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivada" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'error'" groups="base.group_system">
+                        <strong>No pude sincronizar esta carpeta.</strong> <field name="last_error" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="state not in ('queued', 'syncing')" groups="base.group_system">
+                        <strong>Sincronizando.</strong> Puede tardar unos minutos. <field name="state" widget="buddy_sync_refresh" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="not service_account_email" groups="base.group_system">
+                        <strong>Antes de conectar una carpeta</strong>, compartila en Google Drive con el rol «Lector» con este correo
+                        (el de la cuenta de servicio de Buddy):
+                        <field name="service_account_email" widget="CopyClipboardChar" readonly="1" nolabel="1"/>
+                        <ol class="mb-0 mt-2">
+                            <li>Abrí la carpeta en Google Drive y tocá «Compartir».</li>
+                            <li>Pegá el correo de arriba, elegí el rol «Lector» y destildá «Notificar a las personas». Si Google avisa que es una dirección de afuera de tu organización, confirmá.</li>
+                            <li>Tocá «Compartir». Después copiá el enlace de la carpeta (tiene que ser una carpeta, no un archivo) y pegalo en «Carpeta de Drive».</li>
+                            <li>Guardá y apretá «Sincronizar ahora». Si dice «No pude sincronizar», lo más común es que la carpeta no esté compartida con ese correo.</li>
+                        </ol>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="service_account_email" groups="base.group_system">
+                        Todavía no cargaste la clave de la cuenta de servicio de Google. Andá a Ajustes, sección «Buddy IA», bloque
+                        «Google Drive», y subí o pegá el archivo .json. Hasta entonces no se puede sincronizar ninguna carpeta.
+                    </div>
+                    <group>
+                        <group string="Carpeta">
+                            <field name="name" placeholder="Ej.: RR.HH., Procesos de Ventas"/>
+                            <field name="folder_url" widget="url" placeholder="https://drive.google.com/drive/folders/..."/>
+                            <field name="auto_sync"/>
+                            <field name="active" invisible="True"/>
+                        </group>
+                        <group string="Quiénes pueden consultarla">
+                            <field name="group_ids" widget="many2many_tags" options="{'no_create': True}" nolabel="1"
+                                   placeholder="Elegí uno o más grupos. «Usuario interno» = todos los empleados"/>
+                        </group>
+                    </group>
+                    <group invisible="not last_sync" groups="base.group_system">
+                        <field name="last_sync"/>
+                        <field name="last_summary"/>
+                    </group>
+                    <group invisible="not semantic_summary" groups="base.group_system">
+                        <field name="semantic_summary"/>
+                    </group>
+                    <notebook>
+                        <page string="Documentos">
+                            <field name="document_ids" readonly="True">
+                                <list decoration-danger="state == 'error'" decoration-muted="state == 'empty'">
+                                    <field name="name"/>
+                                    <field name="path"/>
+                                    <field name="chunk_count"/>
+                                    <field name="state"/>
+                                    <field name="error" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="buddy_source_action" model="ir.actions.act_window">
+        <field name="name">Carpetas de Drive</field>
+        <field name="res_model">buddy.source</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Conectá la primera carpeta de Google Drive</p>
+            <p>Compartí la carpeta con la cuenta de servicio de Buddy, pegá acá su enlace y elegí quiénes pueden consultarla.
+               Buddy lee los documentos, los mantiene al día solo y responde con ellos.</p>
+        </field>
+    </record>
+    <menuitem id="buddy_menu_sources" name="Carpetas de Drive" parent="buddy_menu_root" action="buddy_source_action"
+              sequence="5" groups="base.group_system"/>
+</odoo>

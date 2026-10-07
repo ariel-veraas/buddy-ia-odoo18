@@ -1,0 +1,764 @@
+// Buddy IA — paleta tomada de la mascota: azul noche, cian de los ojos, aro multicolor.
+// El color principal (botones, globos del usuario, enlaces) se puede cambiar desde Ajustes: el widget
+// pisa --bd-primary / --bd-on-primary / --bd-accent con un estilo en línea ya validado.
+.o_buddy {
+    --bd-ink: #0b0f2b;
+    --bd-navy: #141a3c;
+    --bd-navy-2: #1c2352;
+    --bd-primary: #39e6ff; // relleno de botones y globos del usuario
+    --bd-on-primary: #04122a; // texto sobre el relleno
+    --bd-accent: #39e6ff; // enlaces, bordes y foco sobre el fondo oscuro
+    --bd-cyan: #39e6ff; // ojos de la mascota
+    --bd-green: #46f0a0;
+    --bd-violet: #7c5cff;
+    --bd-amber: #ffc24a;
+    --bd-danger: #ff7a7a;
+    --bd-text: #e8eeff;
+    --bd-muted: #a3aedb;
+
+    position: fixed;
+    right: 20px;
+    bottom: 16px;
+    z-index: 1040; // por debajo de los diálogos modales de Odoo
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    font-size: 13.5px;
+    pointer-events: none; // el contenedor no bloquea la pantalla; solo sus hijos reciben clics
+    > * { pointer-events: auto; }
+}
+
+.o_buddy_sr {
+    // solo para lectores de pantalla
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+// ---------------------------------------------------------------- Avatar
+// El dibujo, el aro de estado, los accesorios y los gestos están en buddy_avatar.scss.
+// Cabeza dentro de un disco (sin cuerpo): lanzador y cabecera del panel. El disco es el propio elemento (fondo y borde)
+// y NO recorta: las orejas, la hojita, la cola y los efectos de los gestos pueden asomar por afuera.
+@mixin bd-head-crop($box, $left, $top) {
+    width: $box;
+    height: $box;
+    flex: none;
+    border-radius: 50%;
+    background: #050818;
+    svg { margin: $top 0 0 $left; filter: drop-shadow(0 2px 3px rgba(5, 8, 24, .4)); }
+}
+
+// -------------------------------------------------------------- Lanzador y globito
+.o_buddy_launcher {
+    @include bd-head-crop(64px, -20px, -12px);
+    display: block;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    line-height: 0;
+    border: 2px solid var(--bd-accent);
+    box-shadow: 0 8px 22px rgba(5, 8, 24, .45);
+    transition: transform .15s ease;
+    &:hover { transform: translateY(-2px); }
+    // Personaje suelto (Kitsune, Mochi): sin disco, sin borde ni sombra de caja; solo el dibujo.
+    &.is-loose { width: auto; height: auto; border: 0; border-radius: 0; background: none; box-shadow: none; svg { margin: 0; } }
+    &:focus-visible { outline: 3px solid var(--bd-accent); outline-offset: 2px; }
+}
+
+.o_buddy_restore {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 50%;
+    background: var(--bd-navy);
+    color: var(--bd-accent);
+    cursor: pointer;
+    opacity: .95;
+    transition: opacity .15s ease;
+    border-color: var(--bd-accent);
+    &:hover, &:focus-visible { opacity: 1; }
+    &:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 2px; }
+}
+
+.o_buddy_bubble {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 290px;
+    padding: 8px 30px 10px 8px;
+    border-radius: 16px 16px 4px 16px;
+    background: var(--bd-navy);
+    color: var(--bd-text);
+    border: 1px solid var(--bd-accent);
+    box-shadow: 0 10px 28px rgba(5, 8, 24, .35);
+    line-height: 1.35;
+    animation: bd-pop .35s ease-out; // el único movimiento "espontáneo": el saludo
+}
+// El aviso de las tareas del día (E4b): un globito chico, sin el avatar grande del saludo, que se puede cerrar y que abre «Tus tareas de hoy».
+.o_buddy_nudge {
+    align-items: stretch;
+    padding: 4px 30px 4px 6px;
+    max-width: 260px;
+    border-radius: 14px 14px 4px 14px;
+}
+.o_buddy_nudge_btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-height: 44px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    .o_buddy_bubble_text { padding-bottom: 0; font-weight: 600; }
+    &:hover { background: rgba(255, 255, 255, .06); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 1px; }
+}
+.o_buddy_nudge_cta { font-size: 12px; color: var(--bd-accent); }
+.o_buddy_nudge .o_buddy_bubble_close { width: 28px; height: 28px; }
+// Fingers, not mouse pointers: the close buttons of the bubbles get a bigger target (the icon stays small).
+@media (pointer: coarse) {
+    .o_buddy_bubble_close { width: 40px; height: 40px; top: 0; right: 0; }
+}
+.o_buddy_bubble_avatar { flex: none; line-height: 0; }
+.o_buddy_bubble_text { padding-bottom: 4px; }
+.o_buddy_bubble_close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--bd-muted);
+    cursor: pointer;
+    &:hover { color: var(--bd-text); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); }
+}
+
+// ----------------------------------------------------------------- Panel
+.o_buddy_panel {
+    width: 360px;
+    max-width: calc(100vw - 24px);
+    height: 560px;
+    max-height: calc(100vh - 120px); // (libsass no soporta min() con calc())
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--bd-ink);
+    color: var(--bd-text);
+    border: 1px solid rgba(124, 92, 255, .4);
+    box-shadow: 0 18px 48px rgba(5, 8, 24, .5);
+    animation: bd-pop .2s ease-out;
+}
+
+.o_buddy_header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px 10px 12px;
+    background: linear-gradient(135deg, var(--bd-navy-2), var(--bd-ink));
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.o_buddy_head_avatar {
+    @include bd-head-crop(52px, -20px, -13px);
+    &.is-loose { width: auto; height: auto; background: none; svg { margin: 0; } }
+}
+.o_buddy_title {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    strong { font-size: 15px; }
+    span { color: var(--bd-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+.o_buddy_icon_btn {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bd-muted);
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, .08); color: var(--bd-text); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); }
+    &:disabled { opacity: .45; cursor: wait; }
+}
+
+.o_buddy_confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 194, 74, .12);
+    border-bottom: 1px solid rgba(255, 194, 74, .35);
+    font-size: 12.5px;
+}
+.o_buddy_confirm_actions { display: flex; gap: 6px; margin-left: auto; }
+
+// -------------------------------------------------------------- Mensajes
+.o_buddy_messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.o_buddy_msg {
+    max-width: 88%;
+    padding: 9px 12px;
+    border-radius: 14px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    &.is-buddy {
+        align-self: flex-start;
+        background: var(--bd-navy-2);
+        border-bottom-left-radius: 4px;
+    }
+    &.is-user {
+        align-self: flex-end;
+        background: var(--bd-primary);
+        color: var(--bd-on-primary);
+        border-bottom-right-radius: 4px;
+        white-space: pre-wrap;
+    }
+}
+// Respuesta del modelo (markdown mínimo ya convertido en nodos)
+.o_buddy_text {
+    p { margin: 0 0 .5em; }
+    ul, ol { margin: 0 0 .5em; padding-left: 1.3em; }
+    li { margin-bottom: .2em; }
+    > :last-child { margin-bottom: 0; }
+    code { padding: 1px 5px; border-radius: 5px; background: rgba(255, 255, 255, .1); font-size: .92em; }
+}
+// Answer being written (streaming): a thin caret at the end of the text. With prefers-reduced-motion (rule at the
+// end of this file) it stays still instead of blinking.
+.o_buddy_msg.is-streaming .o_buddy_text > :last-child::after,
+.o_buddy_msg.is-streaming .o_buddy_text:empty::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    background: var(--bd-accent, currentColor);
+    animation: bd-pulse 1s ease-in-out infinite;
+}
+.o_buddy_typing {
+    display: flex;
+    gap: 4px;
+    padding: 12px 14px;
+    span:not(.o_buddy_sr) {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--bd-muted);
+        animation: bd-pulse 1s ease-in-out infinite;
+        &:nth-child(2) { animation-delay: .15s; }
+        &:nth-child(3) { animation-delay: .3s; }
+    }
+}
+
+.o_buddy_sources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--bd-muted);
+}
+.o_buddy_source {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .07);
+}
+
+.o_buddy_card {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--bd-accent);
+}
+.o_buddy_card_title { font-size: 12px; color: var(--bd-muted); margin-bottom: 2px; }
+.o_buddy_card_text { margin-bottom: 8px; }
+.o_buddy_card_ok { color: var(--bd-green); }
+.o_buddy_card_error { color: var(--bd-amber); margin-bottom: 6px; }
+.o_buddy_link { color: var(--bd-accent); text-decoration: underline; }
+
+.o_buddy_btn {
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bd-primary);
+    color: var(--bd-on-primary);
+    font-weight: 600;
+    cursor: pointer;
+    &:disabled { opacity: .55; cursor: default; }
+    &:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+}
+.o_buddy_fb_send[aria-disabled="true"] { opacity: .55; cursor: default; }
+.o_buddy_ghost_btn, .o_buddy_danger_btn, .o_buddy_retry_btn {
+    padding: 5px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    &:disabled { opacity: .55; cursor: default; }
+    &:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+}
+.o_buddy_ghost_btn { border: 1px solid rgba(255, 255, 255, .3); background: transparent; color: var(--bd-text); }
+.o_buddy_danger_btn { border: 0; background: var(--bd-danger); color: #2a0606; }
+// ------------------------------------------------ Nota de confianza y votos (👍 / 👎)
+.o_buddy_confidence {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(255, 194, 74, .1);
+    border: 1px solid rgba(255, 194, 74, .4);
+    color: var(--bd-text);
+    font-size: 12.5px;
+    line-height: 1.35;
+    i { color: var(--bd-amber); margin-top: 2px; }
+}
+.o_buddy_feedback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    color: var(--bd-muted);
+    font-size: 12px;
+}
+.o_buddy_fb_label { margin-right: 2px; }
+.o_buddy_fb_btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bd-muted);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    &:hover:not(:disabled) { background: rgba(255, 255, 255, .08); color: var(--bd-text); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 1px; }
+    &:disabled, &[aria-disabled="true"] { cursor: default; opacity: .5; }
+    &.is-on { color: var(--bd-accent); border-color: var(--bd-accent); }
+}
+.o_buddy_fb_status { margin-left: 4px; }
+.o_buddy_fb_error { margin-top: 4px; color: var(--bd-amber); font-size: 12px; }
+.o_buddy_fb_form {
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .15);
+    font-size: 12.5px;
+}
+.o_buddy_fb_legend { margin-bottom: 4px; font-weight: 600; }
+.o_buddy_fb_opt { font-weight: 400; color: var(--bd-muted); }
+.o_buddy_fb_choice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    cursor: pointer;
+    input { accent-color: var(--bd-accent); margin: 0; }
+}
+.o_buddy_fb_include { margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.o_buddy_fb_hint { margin-top: 2px; color: var(--bd-muted); font-size: 12px; }
+.o_buddy_fb_actions { display: flex; gap: 8px; margin-top: 8px; }
+.o_buddy_retry { margin-top: 8px; }
+.o_buddy_retry_btn { border: 1px solid var(--bd-accent); background: transparent; color: var(--bd-accent); }
+
+// ------------------------------------------------------- Sugerencias y entrada
+.o_buddy_chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 14px 10px;
+}
+.o_buddy_chip {
+    padding: 5px 12px;
+    border-radius: 18px;
+    // A long question never takes more than two lines of the panel (the whole text is the tooltip and the name for screen readers).
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    border: 1px solid var(--bd-accent);
+    background: transparent;
+    color: var(--bd-accent);
+    cursor: pointer;
+    font-size: 12.5px;
+    text-align: left;
+    &:hover { background: rgba(255, 255, 255, .08); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 2px; }
+    &:disabled { opacity: .45; cursor: default; }
+}
+.o_buddy_note {
+    padding: 4px 14px 8px;
+    font-size: 12px;
+    color: var(--bd-amber);
+}
+// The administrator has not finished the setup: it is the main thing the person has to know, not a footnote.
+.o_buddy_unconfigured {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 14px;
+    .o_buddy_finish_setup { display: block; margin-top: 6px; }
+}
+.o_buddy_copy {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border: 1px solid var(--bd-accent);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--bd-accent);
+    font-size: 12px;
+    cursor: pointer;
+    &:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+}
+.o_buddy_ticket_details {
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: var(--bd-muted);
+    summary { cursor: pointer; }
+    .o_buddy_ticket_detail_text { margin-top: 4px; white-space: pre-wrap; max-height: 6em; overflow: auto; }
+}
+.o_buddy_stop {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    border: 1px solid var(--bd-accent);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--bd-accent);
+    cursor: pointer;
+    &:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+}
+.o_buddy_footer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, .07);
+}
+.o_buddy_input {
+    flex: 1;
+    min-height: 38px;
+    max-height: 96px;
+    resize: none;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    background: var(--bd-navy);
+    color: var(--bd-text);
+    font-size: 16px; // 16px evita el zoom automático de iOS al enfocar
+    &::placeholder { color: var(--bd-muted); }
+    &:focus { outline: 2px solid var(--bd-accent); outline-offset: 0; border-color: transparent; }
+}
+.o_buddy_send {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bd-primary);
+    color: var(--bd-on-primary);
+    cursor: pointer;
+    &:disabled { opacity: .4; cursor: default; }
+    &:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+}
+
+// ----------------------------------------------------------------- Móvil
+@media (max-width: 480px) {
+    .o_buddy {
+        right: 12px;
+        bottom: calc(68px + env(safe-area-inset-bottom, 0px)); // clears Odoo's bottom tab bars (Discuss, apps)
+    }
+    // Lanzador circular un poco más chico.
+    .o_buddy_launcher {
+        width: 56px;
+        height: 56px;
+        svg { width: 91px; height: auto; margin: -10px 0 0 -17px; }
+        &.is-loose { width: auto; height: auto; svg { width: auto; margin: 0; } }
+    }
+    // Panel a pantalla casi completa; 100dvh descuenta la barra del navegador móvil.
+    .o_buddy_open .o_buddy_launcher { display: none; }
+    .o_buddy_panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        max-width: none;
+        height: 100vh;
+        height: 100dvh;
+        max-height: none;
+        border: 0;
+        border-radius: 0;
+    }
+    .o_buddy_header { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+    .o_buddy_footer { padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .o_buddy_icon_btn { width: 40px; height: 40px; }
+    .o_buddy_msg { max-width: 92%; }
+    // Fingers, not mouse pointers: every control at least 40 px tall.
+    .o_buddy_send, .o_buddy_stop, .o_buddy_restore { width: 44px; height: 44px; }
+    .o_buddy_chip, .o_buddy_btn, .o_buddy_ghost_btn, .o_buddy_danger_btn, .o_buddy_retry_btn, .o_buddy_new_btn, .o_buddy_copy {
+        min-height: 40px;
+    }
+    .o_buddy_fb_btn { width: 40px; height: 40px; }
+    .o_buddy_fb_choice { padding: 8px 0; min-height: 40px; input { width: 20px; height: 20px; } }
+    .o_buddy_fb_send[aria-disabled="true"] { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_buddy *, .o_buddy_avatar * { animation: none !important; transition: none !important; }
+}
+
+.o_buddy_source a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+// -------------------------------------------------- Conversación restaurada y "Nueva conversación"
+.o_buddy_toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+.o_buddy_new_btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 4px 8px;
+    background: transparent;
+    color: var(--bd-muted);
+    font-size: 12px;
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, .08); color: var(--bd-text); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); }
+    &:disabled { opacity: .45; cursor: wait; }
+}
+.o_buddy_divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--bd-muted);
+    font-size: 12px;
+    &::before, &::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, .12); }
+}
+
+// ------------------------------------------------ Pantalla de ajustes: elegir el personaje y vista previa
+.o_buddy_picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.o_buddy_picker_card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 128px;
+    padding: 8px 8px 10px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: #0b0f2b;
+    color: #e8eeff;
+    cursor: pointer;
+    transition: border-color .15s ease, transform .15s ease;
+    &:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(124, 92, 255, .6); }
+    &:focus-visible { outline: 3px solid #7c5cff; outline-offset: 2px; }
+    &.is-selected { border-color: #39e6ff; box-shadow: 0 0 0 3px rgba(57, 230, 255, .25); }
+}
+.o_buddy_picker_art { display: flex; align-items: flex-end; justify-content: center; line-height: 0; height: 128px; padding-top: 4px; }
+.o_buddy_picker_name { font-weight: 600; font-size: 13px; text-align: center; }
+.o_buddy_chips_field { display: flex; flex-wrap: wrap; gap: 6px; }
+.o_buddy_preview_box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-start;
+}
+.o_buddy_preview_stage {
+    flex: none;
+    width: 250px;
+    min-height: 300px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 34px 10px 12px;
+    border-radius: 14px;
+    background: #0b0f2b;
+}
+.o_buddy_preview_controls { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 8px; }
+.o_buddy_preview_group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.o_buddy_preview_label { flex: 0 0 100%; font-size: 12px; font-weight: 600; color: var(--bs-secondary-color, #6c757d); }
+// Los ajustes del personaje y de la vista previa ocupan todo el ancho (la grilla de Ajustes es de dos columnas).
+.o_setting_box.o_buddy_wide { flex: 0 0 100%; max-width: 100%; width: 100%; }
+
+// -------------------------------------------------------------- Onboarding: «Tus tareas de hoy»
+// Punto discreto en el lanzador cuando hay tareas obligatorias para hoy o atrasadas (quieto: no compite con los gestos).
+.o_buddy_launcher { position: relative; }
+.o_buddy_dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bd-amber);
+    border: 2px solid var(--bd-ink);
+    box-shadow: 0 0 0 1px rgba(255, 194, 74, .5);
+    pointer-events: none;
+}
+.o_buddy_tasks {
+    flex: 0 1 auto; // cede espacio antes de empujar el chat fuera del panel
+    min-height: 0;
+    max-height: 46%;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+    background: rgba(255, 255, 255, .03);
+}
+.o_buddy_tasks_head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    color: var(--bd-text);
+    text-align: left;
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, .05); }
+    &:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: -2px; }
+    strong { flex: 1; font-size: 13px; }
+}
+.o_buddy_tasks_count {
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: rgba(255, 194, 74, .18);
+    border: 1px solid rgba(255, 194, 74, .5);
+    color: var(--bd-text);
+    font-size: 11.5px;
+    &.is-clear { background: rgba(70, 240, 160, .12); border-color: rgba(70, 240, 160, .45); }
+}
+.o_buddy_tasks_body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.o_buddy_journey_title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+    strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    span { flex: none; color: var(--bd-muted); font-size: 12px; white-space: nowrap; }
+    .o_buddy_journey_pct { color: var(--bd-text); font-weight: 600; }
+}
+.o_buddy_tasks_error { margin: 0 12px 8px; }
+.o_buddy_progress {
+    height: 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .12);
+    overflow: hidden;
+    span { display: block; height: 100%; border-radius: 6px; background: var(--bd-green); }
+}
+.o_buddy_journey_meta { margin: 3px 0 6px; color: var(--bd-muted); font-size: 12px; }
+.o_buddy_task_list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.o_buddy_task {
+    padding: 7px 9px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .08);
+    &.is-overdue { border-color: rgba(255, 194, 74, .55); }
+    &.is-done .o_buddy_task_title { text-decoration: line-through; color: var(--bd-muted); }
+}
+.o_buddy_task_check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+    input { margin-top: 2px; width: 16px; height: 16px; flex: none; accent-color: var(--bd-primary); }
+    input:focus-visible { outline: 2px solid var(--bd-accent); outline-offset: 2px; }
+}
+.o_buddy_task_title { font-weight: 600; }
+.o_buddy_task_meta { margin-left: 24px; }
+.o_buddy_task_tag {
+    display: inline-block;
+    margin: 4px 6px 0 0;
+    padding: 0 7px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    color: var(--bd-muted);
+    font-size: 11px;
+    &.is-late { border-color: rgba(255, 194, 74, .6); color: var(--bd-amber); }
+}
+.o_buddy_task_detail { margin: 4px 0 0; color: var(--bd-muted); font-size: 12.5px; line-height: 1.4; }
+.o_buddy_task_actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 0 24px; }
+.o_buddy_task_ask { padding: 3px 10px; font-size: 12px; }
+.o_buddy_task_contact { margin: 6px 0 0 24px; font-size: 12px; color: var(--bd-muted); strong { color: var(--bd-text); } }
+.o_buddy_task.is-upcoming { display: flex; justify-content: space-between; gap: 8px; }
+.o_buddy_task_until { color: var(--bd-muted); font-size: 12px; white-space: nowrap; }
+li.o_buddy_task_until { padding: 0 2px; }
+.o_buddy_tasks_empty { color: var(--bd-muted); font-size: 12.5px; padding: 4px 0; }
+.o_buddy_upcoming {
+    margin-top: 8px;
+    summary { cursor: pointer; color: var(--bd-muted); font-size: 12px; &:focus-visible { outline: 2px solid var(--bd-accent); } }
+    .o_buddy_task_list { margin-top: 6px; }
+}
+// Con la lista abierta las sugerencias de abajo se ocultan (las tareas ya son las sugerencias) y el bloque no pasa del 40 % del panel:
+// así el chat conserva su lugar. En pantallas bajas (celular de costado, ventana chica) el bloque se achica un poco más.
+.o_buddy_panel.has-tasks-open {
+    .o_buddy_chips { display: none; }
+    .o_buddy_tasks { max-height: 40%; }
+    .o_buddy_messages { min-height: 120px; }
+}
+@media (max-height: 680px) {
+    .o_buddy_panel.has-tasks-open .o_buddy_tasks { max-height: 36%; }
+}
+@media (max-width: 480px) {
+    .o_buddy_tasks { max-height: 55%; }
+    .o_buddy_panel.has-tasks-open .o_buddy_tasks { max-height: 40%; }
+    .o_buddy_tasks_head { min-height: 44px; }
+    .o_buddy_task_check { min-height: 44px; align-items: center; input { width: 22px; height: 22px; } }
+    .o_buddy_task_ask { min-height: 40px; }
+    .o_buddy_task_link, .o_buddy_task_contact a, .o_buddy_upcoming summary { min-height: 40px; display: inline-flex; align-items: center; }
+    .o_buddy_dot { top: 0; right: 0; }
+}

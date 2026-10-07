@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tipo de actividad del aviso «hay un resumen semanal nuevo» (una sola abierta por persona: la de la semana siguiente reemplaza a la anterior). -->
+    <data noupdate="1">
+        <record id="activity_type_digest" model="mail.activity.type">
+            <field name="name">Resumen semanal de Buddy</field>
+            <field name="icon">fa-lightbulb-o</field>
+            <field name="res_model">buddy.digest</field>
+            <field name="delay_count">0</field>
+            <field name="category">default</field>
+            <field name="summary">Qué falta documentar</field>
+        </record>
+    </data>
+
+    <!-- Una vez por semana (los lunes a las 08:00 de Argentina): arma el resumen de la semana que terminó y avisa a quien se eligió en Ajustes
+         (solo una actividad de Odoo, nunca un correo). Sin IA y sin trabajo si el administrador lo apagó. -->
+    <record id="buddy_cron_digest" model="ir.cron">
+        <field name="name">Buddy: resumen semanal de qué falta documentar</field>
+        <field name="model_id" ref="model_buddy_digest"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_weekly()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="nextcall" eval="(datetime.now() + timedelta(days=(7 - datetime.now().weekday()) % 7 or 7)).strftime('%Y-%m-%d 11:00:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="buddy_contact_view_list" model="ir.ui.view">
+        <field name="name">buddy.contact.list</field>
+        <field name="model">buddy.contact</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-warning="is_placeholder">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/><field name="label"/><field name="name"/><field name="email"/>
+                <field name="is_placeholder" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="buddy_contact_action" model="ir.actions.act_window">
+        <field name="name">Contactos del Buddy</field>
+        <field name="res_model">buddy.contact</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Agregá la primera persona o equipo de contacto</p>
+            <p>Cuando el buddy no sabe algo, le sugiere a quién escribir. El <strong>código</strong> es el identificador corto con el que
+               el buddy elige el contacto: por ejemplo <em>it</em>, <em>rrhh</em> o <em>ventas</em>. Es único, se guarda en minúsculas
+               y solo admite letras, números, guion y guion bajo.</p>
+            <p>Las filas en amarillo tienen un <strong>correo de ejemplo</strong> (<em>…@ejemplo.test</em>): nadie puede escribirles. Cambialo por el real o
+               borrá el contacto. Mientras tanto Buddy muestra el área y el nombre, pero no el enlace para escribir.</p>
+            <p>El contacto con código <strong>general</strong> se usa cuando ninguno encaja: conviene tenerlo siempre.</p>
+        </field>
+    </record>
+    <menuitem id="buddy_menu_contacts" name="Contactos" parent="buddy_menu_root" action="buddy_contact_action" sequence="20" groups="base.group_system"/>
+</odoo>

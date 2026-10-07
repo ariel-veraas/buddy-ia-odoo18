@@ -1,0 +1,7 @@
+{
+  "name": "buddy-ia-frontend-tests",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --import ./register.mjs --test tests/*.test.js" },
+  "devDependencies": { "@odoo/owl": "2.8.3", "jsdom": "26.1.0" }
+}

@@ -1,0 +1,6 @@
+# To run the local test suites (tools/validate_local.py). Not needed in production.
+-r requirements.txt
+requests
+cryptography
+pyyaml==6.0.3
+libsass==0.22.0

@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <!-- Inline pieces of the model's answer. Always rendered with t-esc: never as HTML. -->
+  <t t-name="buddy_ia.BuddyInline">
+    <t t-foreach="tokens" t-as="tok" t-key="tok_index">
+      <strong t-if="tok.t === 'strong'" t-esc="tok.v"/>
+      <em t-elif="tok.t === 'em'" t-esc="tok.v"/>
+      <code t-elif="tok.t === 'code'" t-esc="tok.v"/>
+      <br t-elif="tok.t === 'br'"/>
+      <t t-else="" t-esc="tok.v"/>
+    </t>
+  </t>
+
+  <t t-name="buddy_ia.Buddy">
+    <div t-if="state.ready and !state.disabled" class="o_buddy" t-att-class="{'o_buddy_open': state.open}" t-att-style="rootStyle"
+         t-on-pointermove="onActivity" t-on-pointerdown="onActivity" t-on-keydown="onActivity" t-on-focusin="onActivity">
+
+      <!-- The user chose to hide the buddy: only a tiny handle stays to bring it back. -->
+      <button t-if="state.hidden" type="button" class="o_buddy_restore" t-on-click="show" t-ref="launcher"
+              t-att-title="showLabel" t-att-aria-label="showLabel">
+        <i class="fa fa-comment-o" aria-hidden="true"/>
+      </button>
+
+      <t t-else="">
+        <div t-if="state.open" id="o_buddy_panel" class="o_buddy_panel" role="dialog" t-att-aria-label="panelLabel"
+             t-att-class="{'has-tasks-open': state.tasksOpen and state.journeys.length}"
+             t-on-keydown="onPanelKeydown" t-att-aria-busy="state.loading or state.forgetting ? 'true' : 'false'">
+          <header class="o_buddy_header">
+            <div class="o_buddy_head_avatar" t-att-class="{'is-loose': looseBuddy}">
+              <BuddyAvatar expression="state.expression" ring="state.ring" size="looseBuddy ? 78 : 92" head="true"
+                           buddy="state.character" accessory="state.accessory" gesture="state.gesture"/>
+            </div>
+            <div class="o_buddy_title">
+              <strong t-esc="state.buddyName"/>
+              <span t-esc="tagline"/>
+            </div>
+            <button type="button" class="o_buddy_icon_btn o_buddy_hide" t-on-click="hide"
+                    t-att-title="hideLabel" t-att-aria-label="hideLabel">
+              <i class="fa fa-eye-slash" aria-hidden="true"/>
+            </button>
+            <button type="button" class="o_buddy_icon_btn o_buddy_close" t-on-click="toggle"
+                    title="Cerrar" aria-label="Cerrar el chat">
+              <i class="fa fa-times" aria-hidden="true"/>
+            </button>
+          </header>
+
+          <div class="o_buddy_toolbar">
+            <button type="button" class="o_buddy_new_btn" t-on-click="askForget"
+                    t-att-disabled="state.forgetting"
+                    title="Empezar una conversación nueva" aria-label="Empezar una conversación nueva">
+              <i class="fa fa-plus" aria-hidden="true"/> Nueva conversación
+            </button>
+          </div>
+
+          <div t-if="state.confirmForget" class="o_buddy_confirm" role="group" aria-labelledby="o_buddy_confirm_text">
+            <span id="o_buddy_confirm_text">¿Empezar una conversación nueva? Se borra esta conversación y no se puede deshacer.</span>
+            <span class="o_buddy_confirm_actions">
+              <button type="button" class="o_buddy_ghost_btn o_buddy_confirm_no" t-ref="confirmNo" t-on-click="cancelForget">Cancelar</button>
+              <button type="button" class="o_buddy_danger_btn o_buddy_confirm_yes" t-on-click="confirmForgetNow">Borrar y empezar</button>
+            </span>
+          </div>
+
+          <!-- Onboarding: the tasks of today (due or late) and the progress of each journey. Everything printed here went through
+               cleanJourneys (texts only as t-esc, links only https). -->
+          <section t-if="state.journeys.length" class="o_buddy_tasks" aria-labelledby="o_buddy_tasks_title">
+            <button type="button" class="o_buddy_tasks_head" t-on-click="toggleTasks" aria-controls="o_buddy_tasks_body"
+                    t-att-aria-expanded="state.tasksOpen ? 'true' : 'false'">
+              <i class="fa" t-att-class="state.tasksOpen ? 'fa-chevron-down' : 'fa-chevron-right'" aria-hidden="true"/>
+              <strong id="o_buddy_tasks_title">Tus tareas de hoy</strong>
+              <span class="o_buddy_tasks_count" t-att-class="{'is-clear': !state.pending}" t-esc="tasksSummary"/>
+            </button>
+            <div t-if="state.tasksOpen and state.tasksError" class="o_buddy_card_error o_buddy_tasks_error" role="alert" t-esc="state.tasksError"/>
+            <div t-if="state.tasksOpen" id="o_buddy_tasks_body" class="o_buddy_tasks_body">
+              <div t-foreach="state.journeys" t-as="journey" t-key="journey_index" class="o_buddy_journey">
+                <div class="o_buddy_journey_title">
+                  <strong t-esc="journey.name" t-att-title="journey.name"/>
+                  <span t-esc="dayLabel(journey)"/>
+                  <span class="o_buddy_journey_pct"><t t-esc="journey.percent"/>%</span>
+                </div>
+                <div class="o_buddy_progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                     t-att-aria-valuenow="journey.percent" t-att-aria-label="progressAria(journey)">
+                  <span t-att-style="'width: ' + journey.percent + '%'"/>
+                </div>
+                <div class="o_buddy_sr" t-esc="progressAria(journey)"/>
+                <ul t-if="journey.tasks.length" class="o_buddy_task_list">
+                  <li t-foreach="journey.tasks" t-as="task" t-key="task.id" class="o_buddy_task"
+                      t-att-class="{'is-done': task.done, 'is-overdue': task.state === 'overdue' and task.required}">
+                    <label class="o_buddy_task_check">
+                      <input type="checkbox" t-att-checked="task.done" t-att-aria-disabled="task.busy ? 'true' : 'false'"
+                             t-att-aria-describedby="'o_buddy_task_meta_' + task.id" t-on-change="(ev) => this.toggleTask(task, ev)"/>
+                      <span class="o_buddy_task_title" t-esc="task.title"/>
+                    </label>
+                    <div class="o_buddy_task_meta" t-att-id="'o_buddy_task_meta_' + task.id">
+                      <span t-if="task.state === 'overdue' and task.required and !task.done" class="o_buddy_task_tag is-late" t-esc="lateLabel(task)"/>
+                      <span t-if="!task.required" class="o_buddy_task_tag">Opcional</span>
+                      <div t-if="task.detail" class="o_buddy_task_detail" t-esc="task.detail"/>
+                    </div>
+                    <div t-if="(task.link or task.question) and !task.done" class="o_buddy_task_actions">
+                      <a t-if="task.link" class="o_buddy_link o_buddy_task_link" t-att-href="task.link.url" target="_blank" rel="noopener noreferrer">
+                        <i class="fa" t-att-class="task.link.kind === 'doc' ? 'fa-file-text-o' : 'fa-external-link'" aria-hidden="true"/>
+                        <t t-esc="taskLinkLabel(task)"/><span class="o_buddy_sr"> (se abre en otra pestaña)</span>
+                      </a>
+                      <button t-if="task.question" type="button" class="o_buddy_ghost_btn o_buddy_task_ask"
+                              t-att-disabled="state.loading or state.forgetting or !state.configured" t-att-title="askHint()"
+                              t-on-click="() => this.askTask(task)">
+                        <i class="fa fa-comment-o" aria-hidden="true"/> Preguntarle al buddy
+                      </button>
+                    </div>
+                    <div t-if="task.contact and !task.done" class="o_buddy_task_contact">
+                      Con quién hablar: <strong t-esc="task.contact.label"/> · <span t-esc="task.contact.name"/>
+                      <a t-if="task.contact.contact" class="o_buddy_link" t-att-href="'mailto:' + task.contact.contact" t-esc="task.contact.contact"/>
+                    </div>
+                  </li>
+                </ul>
+                <div t-else="" class="o_buddy_tasks_empty">No tenés tareas para hoy. ¡Todo al día!</div>
+                <details t-if="journey.upcoming.length" class="o_buddy_upcoming">
+                  <summary t-esc="upcomingLabel(journey)"/>
+                  <ul class="o_buddy_task_list">
+                    <li t-foreach="journey.upcoming" t-as="task" t-key="task.id" class="o_buddy_task is-upcoming">
+                      <span class="o_buddy_task_title" t-esc="task.title"/>
+                      <span class="o_buddy_task_until" t-esc="untilLabel(task)"/>
+                    </li>
+                    <li t-if="journey.upcomingTotal > journey.upcoming.length" class="o_buddy_task_until" t-esc="moreUpcoming(journey)"/>
+                  </ul>
+                </details>
+              </div>
+            </div>
+            <div class="o_buddy_sr" role="status" t-esc="state.tasksStatus"/>
+          </section>
+
+          <div class="o_buddy_messages" t-ref="messages" aria-live="polite" t-att-aria-busy="state.loading ? 'true' : 'false'">
+            <t t-foreach="state.messages" t-as="msg" t-key="msg.id">
+              <div t-if="msg.role === 'divider'" class="o_buddy_divider" role="separator" t-att-aria-label="msg.text">
+                <span t-esc="msg.text"/>
+              </div>
+              <div t-elif="msg.role === 'user'" class="o_buddy_msg is-user" role="group" aria-label="Vos escribiste" t-esc="msg.text"/>
+              <div t-else="" class="o_buddy_msg is-buddy" t-att-class="{'is-streaming': msg.streaming}" role="group" t-att-aria-label="replyLabel">
+                <div class="o_buddy_text">
+                  <t t-foreach="msg.blocks" t-as="block" t-key="block_index">
+                    <p t-if="block.type === 'p'">
+                      <t t-call="buddy_ia.BuddyInline"><t t-set="tokens" t-value="block.inline"/></t>
+                    </p>
+                    <ul t-elif="block.type === 'ul'">
+                      <li t-foreach="block.items" t-as="item" t-key="item_index">
+                        <t t-call="buddy_ia.BuddyInline"><t t-set="tokens" t-value="item"/></t>
+                      </li>
+                    </ul>
+                    <ol t-else="" t-att-start="block.start">
+                      <li t-foreach="block.items" t-as="item" t-key="item_index">
+                        <t t-call="buddy_ia.BuddyInline"><t t-set="tokens" t-value="item"/></t>
+                      </li>
+                    </ol>
+                  </t>
+                </div>
+
+                <!-- The documents disagree or back the answer weakly: a calm note (the answer itself already says it). -->
+                <div t-if="confidenceNote(msg) and !msg.streaming" class="o_buddy_confidence" role="note">
+                  <i class="fa fa-info-circle" aria-hidden="true"/>
+                  <span t-esc="confidenceNote(msg)"/>
+                </div>
+
+                <div t-if="msg.sources and msg.sources.length" class="o_buddy_sources">
+                  <span class="o_buddy_sources_label">Fuentes</span>
+                  <span t-foreach="msg.sources" t-as="src" t-key="src_index" class="o_buddy_source"
+                        t-att-title="sourceTitle(src)">
+                    <i class="fa fa-file-text-o" aria-hidden="true"/>
+                    <a t-if="safeLink(src.link)" t-att-href="safeLink(src.link)" target="_blank" rel="noopener noreferrer" t-esc="src.title"/>
+                    <t t-else="" t-esc="src.title"/>
+                  </span>
+                </div>
+
+                <div t-if="msg.contact" class="o_buddy_card">
+                  <div class="o_buddy_card_title">
+                    <t t-if="msg.conflict or msg.confidence === 'low'">Para confirmarlo, hablá con</t>
+                    <t t-else="">Te conviene hablar con</t>
+                  </div>
+                  <div class="o_buddy_card_text">
+                    <strong t-esc="msg.contact.label"/> · <t t-esc="msg.contact.name"/>
+                  </div>
+                  <t t-if="msg.contact.contact">
+                    <a class="o_buddy_link" t-att-href="'mailto:' + msg.contact.contact" t-esc="msg.contact.contact"/>
+                    <button type="button" class="o_buddy_copy" t-on-click="() => this.copyEmail(msg)">
+                      <i class="fa fa-clipboard" aria-hidden="true"/> <t t-if="msg.copied">Copiado</t><t t-else="">Copiar correo</t>
+                    </button>
+                  </t>
+                </div>
+
+                <div t-if="msg.ticket" class="o_buddy_card">
+                  <div class="o_buddy_card_title">¿Querés que cree un ticket?</div>
+                  <div class="o_buddy_card_text" t-esc="msg.ticket.title"/>
+                  <details t-if="msg.ticket.description and msg.ticket.description !== msg.ticket.title and !(msg.ticketResult and !msg.ticketResult.error)" class="o_buddy_ticket_details">
+                    <summary>Ver el detalle que se va a enviar</summary>
+                    <div class="o_buddy_ticket_detail_text" t-esc="msg.ticket.description"/>
+                  </details>
+                  <div t-if="msg.ticketResult and !msg.ticketResult.error" class="o_buddy_card_ok">
+                    <i class="fa fa-check" aria-hidden="true"/> Ticket creado: <a class="o_buddy_link o_buddy_ticket_link"
+                       t-att-href="ticketUrl(msg.ticketResult)" t-on-click="(ev) => this.onTicketLink(ev, msg.ticketResult)"
+                       t-esc="msg.ticketResult.name"/>
+                  </div>
+                  <t t-else="">
+                    <div t-if="msg.ticketResult and msg.ticketResult.error" class="o_buddy_card_error" role="alert">
+                      <t t-if="msg.ticketResult.message" t-esc="msg.ticketResult.message"/>
+                      <t t-else="">No pude crear el ticket. Probá de nuevo.</t>
+                    </div>
+                    <button type="button" class="o_buddy_btn" t-att-disabled="msg.creating or state.forgetting or msg.epoch !== this._epoch"
+                            t-on-click="() => this.createTicket(msg)" t-att-aria-busy="msg.creating ? 'true' : 'false'">
+                      <t t-if="msg.creating">Creando…</t>
+                      <t t-else="">Crear ticket</t>
+                    </button>
+                  </t>
+                </div>
+
+                <!-- 👍 / 👎: only answers about the documentation have a code to be rated with. -->
+                <div t-if="msg.feedbackToken and !msg.streaming" class="o_buddy_feedback" role="group" aria-label="¿Te sirvió esta respuesta?">
+                  <span class="o_buddy_fb_label" aria-hidden="true">¿Te sirvió?</span>
+                  <button type="button" class="o_buddy_fb_btn" t-att-class="{'is-on': msg.feedback === 'up'}"
+                          t-att-aria-pressed="msg.feedback === 'up' ? 'true' : 'false'" t-att-data-fb-up="msg.id"
+                          t-att-disabled="state.forgetting or msg.epoch !== this._epoch" t-att-aria-disabled="msg.fbBusy ? 'true' : 'false'"
+                          title="Esta respuesta me sirvió" aria-label="Esta respuesta me sirvió" t-on-click="() => this.vote(msg, 'up')">
+                    <i class="fa" t-att-class="msg.feedback === 'up' ? 'fa-thumbs-up' : 'fa-thumbs-o-up'" aria-hidden="true"/>
+                  </button>
+                  <button type="button" class="o_buddy_fb_btn" t-att-class="{'is-on': msg.feedback === 'down'}"
+                          t-att-aria-pressed="msg.feedback === 'down' ? 'true' : 'false'" t-att-data-fb-down="msg.id"
+                          t-att-disabled="state.forgetting or msg.epoch !== this._epoch" t-att-aria-disabled="msg.fbBusy ? 'true' : 'false'"
+                          title="Esta respuesta no me sirvió" aria-label="Esta respuesta no me sirvió" t-on-click="() => this.vote(msg, 'down')">
+                    <i class="fa" t-att-class="msg.feedback === 'down' ? 'fa-thumbs-down' : 'fa-thumbs-o-down'" aria-hidden="true"/>
+                  </button>
+                  <span class="o_buddy_fb_status" role="status" t-esc="msg.fbStatus"/>
+                </div>
+                <div t-if="msg.feedbackToken and msg.fbError" class="o_buddy_fb_error" role="alert" t-esc="msg.fbError"/>
+                <div t-if="msg.feedbackToken and msg.fbOpen and !msg.streaming" class="o_buddy_fb_form"
+                     t-att-data-fb-form="msg.id" t-on-keydown="(ev) => this.onFeedbackKeydown(ev, msg)">
+                  <div class="o_buddy_fb_legend" t-att-id="'o_buddy_fb_legend_' + msg.id">¿Qué pasó? <span class="o_buddy_fb_opt">(opcional)</span></div>
+                  <div role="radiogroup" t-att-aria-labelledby="'o_buddy_fb_legend_' + msg.id">
+                    <label t-foreach="feedbackReasons" t-as="reason" t-key="reason.id" class="o_buddy_fb_choice">
+                      <input type="radio" t-att-name="'o_buddy_fb_reason_' + msg.id" t-att-value="reason.id"
+                             t-att-checked="msg.fbReason === reason.id" t-on-change="() => this.setFeedbackReason(msg, reason.id)"/>
+                      <span t-esc="reason.label"/>
+                    </label>
+                  </div>
+                  <label t-if="!state.keepQuestions" class="o_buddy_fb_choice o_buddy_fb_include">
+                    <input type="checkbox" t-att-checked="msg.fbInclude" t-on-change="(ev) => this.setFeedbackInclude(msg, ev)"/>
+                    <span>Incluir mi pregunta para mejorar a Buddy</span>
+                  </label>
+                  <div class="o_buddy_fb_hint">
+                    <t t-if="state.keepQuestions">Tu voto es anónimo. Las preguntas ya se guardan sin tu nombre, así que no hace falta tildar nada.</t>
+                    <t t-else="">Tu voto es anónimo: no lleva tu nombre.</t>
+                  </div>
+                  <div class="o_buddy_fb_actions">
+                    <button type="button" class="o_buddy_btn o_buddy_fb_send" t-att-aria-disabled="msg.fbBusy ? 'true' : 'false'" t-on-click="() => this.submitFeedback(msg)">Enviar</button>
+                    <button type="button" class="o_buddy_ghost_btn o_buddy_fb_skip" t-on-click="() => this.closeFeedback(msg)">Ahora no</button>
+                  </div>
+                </div>
+
+                <div t-if="msg.retryText and msg === lastMessage and !state.loading" class="o_buddy_retry">
+                  <button type="button" class="o_buddy_retry_btn" t-att-disabled="state.forgetting"
+                          t-on-click="() => this.retry(msg)">
+                    <i class="fa fa-refresh" aria-hidden="true"/> Reintentar
+                  </button>
+                </div>
+              </div>
+            </t>
+
+            <div t-if="state.loading and !state.streaming" class="o_buddy_msg is-buddy o_buddy_typing" role="status" aria-label="Escribiendo">
+              <span aria-hidden="true"/><span aria-hidden="true"/><span aria-hidden="true"/>
+              <span class="o_buddy_sr">Escribiendo…</span>
+            </div>
+          </div>
+
+          <!-- Up to four suggestions: the ones that fit the person (their onboarding questions, the topics the company asks about most; text and
+               label already filtered by cleanSuggestions) and the fixed ones. The button shows the label; the question that is sent is the text. -->
+          <div t-if="!hasUserMessages" class="o_buddy_chips" role="group" aria-label="Preguntas sugeridas">
+            <button t-foreach="suggestions" t-as="s" t-key="s_index" type="button" class="o_buddy_chip"
+                    t-att-class="{'is-fit': s.kind !== 'generic'}" t-att-title="s.label !== s.text ? s.text : false"
+                    t-att-aria-label="s.label !== s.text ? s.text : false"
+                    t-att-disabled="state.loading or state.forgetting or !state.configured"
+                    t-on-click="() => this.sendChip(s)" t-esc="s.label"/>
+          </div>
+
+          <div t-if="!state.configured" class="o_buddy_note o_buddy_unconfigured" role="status">
+            <span t-esc="notConfiguredText"/>
+            <button t-if="state.isAdmin" type="button" class="o_buddy_btn o_buddy_finish_setup" t-on-click="finishSetup">Terminar la configuración</button>
+          </div>
+          <div t-if="state.forgetting" class="o_buddy_note" role="status">Borrando el historial…</div>
+          <div t-if="state.forgetError" class="o_buddy_note o_buddy_forget_error" role="alert" t-esc="state.forgetError"/>
+
+          <footer class="o_buddy_footer">
+            <textarea t-ref="input" rows="1" maxlength="2000" class="o_buddy_input"
+                      placeholder="Escribí tu consulta…" aria-label="Tu consulta"
+                      autocomplete="off" enterkeyhint="send"
+                      t-att-disabled="state.forgetting or !state.configured"
+                      t-model="state.input" t-on-keydown="onKeydown" t-on-input="onInput"/>
+            <button t-if="state.loading and !state.forgetting" type="button" class="o_buddy_stop" t-on-click="stop"
+                    title="Detener la respuesta" aria-label="Detener la respuesta">
+              <i class="fa fa-stop" aria-hidden="true"/>
+            </button>
+            <button t-else="" type="button" class="o_buddy_send" t-att-disabled="!canSend" t-on-click="() => this.send()"
+                    aria-label="Enviar consulta">
+              <i class="fa fa-paper-plane" aria-hidden="true"/>
+            </button>
+          </footer>
+        </div>
+
+        <!-- The big, waving avatar only shows up in the greeting. -->
+        <div t-if="!state.open and state.bubble and !state.bubbleAction" class="o_buddy_bubble" role="status">
+          <div class="o_buddy_bubble_avatar">
+            <BuddyAvatar expression="'happy'" ring="'idle'" waving="true" size="64"
+                           buddy="state.character" accessory="state.accessory"/>
+          </div>
+          <span class="o_buddy_bubble_text" t-esc="state.bubble"/>
+          <button type="button" class="o_buddy_bubble_close" t-on-click="dismissBubble"
+                  aria-label="Cerrar el saludo"><i class="fa fa-times" aria-hidden="true"/></button>
+        </div>
+
+        <!-- The reminder of the tasks of the day: small, at most once a day, goes away by itself and can be closed. Tapping it opens «Tus tareas de hoy». -->
+        <div t-if="!state.open and state.bubble and state.bubbleAction" class="o_buddy_bubble o_buddy_nudge" t-ref="nudge"
+             t-on-mouseenter="holdNudge" t-on-mouseleave="releaseNudge" t-on-focusin="holdNudge" t-on-focusout="releaseNudge" t-on-keydown="onNudgeKeydown">
+          <button type="button" class="o_buddy_nudge_btn" t-on-click="openTasksFromBubble">
+            <span class="o_buddy_bubble_text" t-esc="state.bubble"/>
+            <span class="o_buddy_nudge_cta">Ver mis tareas <i class="fa fa-chevron-right" aria-hidden="true"/></span>
+          </button>
+          <button type="button" class="o_buddy_bubble_close" t-on-click="dismissNudge" aria-label="Cerrar el aviso">
+            <i class="fa fa-times" aria-hidden="true"/>
+          </button>
+        </div>
+
+        <!-- What the screen readers hear when the reminder appears: a live region that is always there (one that is born with its text is not always announced). -->
+        <div class="o_buddy_sr" role="status" aria-live="polite" t-esc="state.bubbleAction and !state.open ? state.bubble : ''"/>
+
+        <button type="button" class="o_buddy_launcher" t-att-class="{'is-loose': looseBuddy}" t-on-click="toggle"
+                t-ref="launcher" aria-haspopup="dialog" t-att-aria-controls="panelId"
+                t-att-aria-expanded="state.open ? 'true' : 'false'"
+                t-att-aria-label="launcherLabel" t-att-title="launcherLabel">
+          <BuddyAvatar expression="state.expression" ring="state.ring" size="104" head="true"
+                       buddy="state.character" accessory="state.accessory" gesture="state.gesture"/>
+          <span t-if="state.pending and !state.open" class="o_buddy_dot" aria-hidden="true"/>
+        </button>
+      </t>
+    </div>
+  </t>
+
+</templates>

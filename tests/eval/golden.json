@@ -1,0 +1,277 @@
+{
+  "version": 1,
+  "description": "Conjunto dorado PUBLICO de Buddy IA v2: casos de contradicciones y evidencia floja sobre documentos sintéticos (tests/eval/synthetic_docs.json). El conjunto sobre los documentos reales de una empresa es privado: ver docs/EVALUACION.md («Armar tu propio conjunto»).",
+  "cases": [
+    {
+      "id": "contradicciones-01",
+      "category": "contradicciones",
+      "synthetic": true,
+      "intent": "Dos documentos sinteticos dicen plazos distintos para el reintegro de gastos de viaje (15 dias habiles en la Politica de Gastos 2023, 30 dias corridos en la Guia Rapida de Administracion 2024). Debe decir que encontro informacion distinta, citar ambos y recomendar confirmar con el contacto; no elegir uno.",
+      "messages": [
+        "¿En cuánto tiempo me reintegran los gastos de un viaje?"
+      ],
+      "must_contain_any": [
+        "informacion distinta",
+        "informacion diferente",
+        "no coinciden",
+        "distint",
+        "contradic",
+        "discrep",
+        "difieren",
+        "no concuerdan",
+        "no son consistentes"
+      ],
+      "must_contain_all": [
+        "15",
+        "30"
+      ],
+      "expected_sources": [
+        "politica de gastos",
+        "guia rapida de administracion"
+      ],
+      "expect_conflict": true,
+      "expect_needs_human": false,
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "contradicciones-02",
+      "category": "contradicciones",
+      "synthetic": true,
+      "intent": "Dos documentos sinteticos dicen cada cuanto se renuevan las notebooks (3 anios en la Politica de Equipamiento Informatico, 4 anios en las Preguntas Frecuentes de IT). Debe senalar la diferencia citando ambos.",
+      "messages": [
+        "¿Cada cuántos años me renuevan la notebook?"
+      ],
+      "must_contain_any": [
+        "informacion distinta",
+        "informacion diferente",
+        "no coinciden",
+        "distint",
+        "contradic",
+        "discrep",
+        "difieren",
+        "no concuerdan",
+        "no son consistentes"
+      ],
+      "must_contain_all": [
+        "3",
+        "4"
+      ],
+      "expected_sources": [
+        "politica de equipamiento",
+        "preguntas frecuentes de it"
+      ],
+      "expect_conflict": true,
+      "expect_needs_human": false,
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "contradicciones-03",
+      "category": "contradicciones",
+      "synthetic": true,
+      "intent": "Dos documentos sinteticos dicen quien aprueba un descuento de mas del 10 por ciento (la Gerencia Comercial en el Manual de Ventas y Descuentos, la Direccion General en la Circular de Direccion sobre Precios). Debe nombrar a los dos y recomendar confirmar.",
+      "messages": [
+        "¿Quién aprueba un descuento de más del 10% a un cliente?"
+      ],
+      "must_contain_any": [
+        "informacion distinta",
+        "informacion diferente",
+        "no coinciden",
+        "distint",
+        "contradic",
+        "discrep",
+        "difieren",
+        "no concuerdan",
+        "no son consistentes"
+      ],
+      "must_contain_all": [
+        "gerencia comercial",
+        "direccion general"
+      ],
+      "expected_sources": [
+        "manual de ventas",
+        "circular de direccion"
+      ],
+      "expect_conflict": true,
+      "expect_needs_human": false,
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "contradicciones-04",
+      "category": "contradicciones",
+      "synthetic": true,
+      "intent": "CONTROL de falso positivo: dos documentos sinteticos dicen lo mismo (2 dias de teletrabajo por semana, con otras palabras). No debe marcar contradiccion.",
+      "messages": [
+        "¿Cuántos días por semana puedo teletrabajar?"
+      ],
+      "must_contain_any": [
+        "2 dias",
+        "dos dias"
+      ],
+      "must_not_contain": [
+        "informacion distinta",
+        "no coinciden",
+        "contradic"
+      ],
+      "expect_conflict": false,
+      "expect_needs_human": false,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "confianza-01",
+      "category": "confianza",
+      "synthetic": true,
+      "intent": "Evidencia floja: la Guia de Viaticos dice que rige una escala vigente y que los montos se comunican por correo, pero no trae ningun monto. Debe decir que no esta seguro / que no figura el monto, no inventar y ofrecer a quien consultar.",
+      "messages": [
+        "¿Cuánto me corresponde de viático por día?"
+      ],
+      "must_contain_any": [
+        "no estoy del todo seguro",
+        "no estoy seguro",
+        "no estoy segur",
+        "no puedo asegurar",
+        "no tengo certeza",
+        "no figura",
+        "no especifica",
+        "no menciona",
+        "no esta documentado",
+        "no encuentro",
+        "no tengo el dato",
+        "no cuento",
+        "no aparece",
+        "no detalla",
+        "no indica",
+        "no incluye"
+      ],
+      "must_not_contain": [
+        "usd",
+        "us$",
+        "dolares"
+      ],
+      "expect_confidence_in": [
+        "low",
+        "none"
+      ],
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "confianza-02",
+      "category": "confianza",
+      "synthetic": true,
+      "intent": "Evidencia floja: Beneficios para el Personal solo dice que hay un convenio con gimnasios y que el detalle se consulta con Capital Humano. No debe inventar gimnasios ni descuentos.",
+      "messages": [
+        "¿Qué gimnasios entran en el convenio y cuánto descuento tengo?"
+      ],
+      "must_contain_any": [
+        "no estoy del todo seguro",
+        "no estoy seguro",
+        "no estoy segur",
+        "no puedo asegurar",
+        "no tengo certeza",
+        "no figura",
+        "no especifica",
+        "no menciona",
+        "no esta documentado",
+        "no encuentro",
+        "no tengo el dato",
+        "no cuento",
+        "no aparece",
+        "no detalla",
+        "no indica",
+        "no incluye"
+      ],
+      "must_not_contain": [
+        "50%",
+        "40%",
+        "30%",
+        "20%",
+        "smartfit",
+        "megatlon"
+      ],
+      "expect_confidence_in": [
+        "low",
+        "none"
+      ],
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "confianza-03",
+      "category": "confianza",
+      "synthetic": true,
+      "intent": "Evidencia parcial: la Guia de Licencias Especiales confirma que corresponde una licencia por nacimiento pero dice que la duracion se define segun la normativa y se confirma con Capital Humano. No debe inventar una cantidad de dias.",
+      "messages": [
+        "¿Cuántos días de licencia me tocan por el nacimiento de mi hijo?"
+      ],
+      "must_contain_any": [
+        "no estoy del todo seguro",
+        "no estoy seguro",
+        "no estoy segur",
+        "no puedo asegurar",
+        "no tengo certeza",
+        "no figura",
+        "no especifica",
+        "no menciona",
+        "no esta documentado",
+        "no encuentro",
+        "no tengo el dato",
+        "no cuento",
+        "no aparece",
+        "no detalla",
+        "no indica",
+        "no incluye"
+      ],
+      "must_not_contain": [
+        "2 dias",
+        "3 dias",
+        "10 dias",
+        "15 dias",
+        "90 dias",
+        "dos dias",
+        "tres dias",
+        "diez dias"
+      ],
+      "expect_confidence_in": [
+        "low",
+        "none"
+      ],
+      "expect_contact": true,
+      "expect_error": null,
+      "max_latency_s": 20
+    },
+    {
+      "id": "confianza-04",
+      "category": "confianza",
+      "synthetic": true,
+      "intent": "CONTROL de falsa alarma: la Guia de la Oficina responde clara y completa donde hay cafe. No debe mostrarse dudosa ni marcar contradiccion.",
+      "messages": [
+        "¿Dónde hay café en la oficina?"
+      ],
+      "must_contain_any": [
+        "segundo piso",
+        "cocina"
+      ],
+      "must_not_contain": [
+        "no estoy del todo seguro",
+        "no estoy seguro"
+      ],
+      "expect_conflict": false,
+      "expect_confidence_in": [
+        "high",
+        "medium"
+      ],
+      "expect_needs_human": false,
+      "expect_error": null,
+      "max_latency_s": 20
+    }
+  ]
+}

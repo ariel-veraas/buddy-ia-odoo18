@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Estadísticas de las consultas. Solo lectura: las filas las escribe el motor del Buddy. -->
+    <record id="buddy_insight_view_list" model="ir.ui.view">
+        <field name="name">buddy.insight.list</field>
+        <field name="model">buddy.insight</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-warning="needs_human" decoration-danger="error">
+                <field name="create_date" string="Fecha"/>
+                <field name="question"/>
+                <field name="needs_human" widget="boolean"/>
+                <field name="conflict" widget="boolean" optional="show"/>
+                <field name="confidence" optional="hide"/>
+                <field name="retrieved_count"/>
+                <field name="best_score"/>
+                <field name="document_titles" optional="show"/>
+                <field name="error" optional="show"/>
+                <field name="model_name" optional="hide"/>
+                <field name="tokens_in" optional="hide" sum="Total"/>
+                <field name="tokens_out" optional="hide" sum="Total"/>
+                <field name="cost" optional="hide" sum="Total"/>
+                <field name="latency_ms" optional="hide"/>
+                <field name="semantic_state" optional="hide"/>
+                <field name="semantic_ms" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_insight_view_form" model="ir.ui.view">
+        <field name="name">buddy.insight.form</field>
+        <field name="model">buddy.insight</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not conflict and confidence != 'low'">
+                        La documentación se contradice o es floja en este tema: revisá en Drive los documentos que figuran en
+                        «Documentos usados» y unificá o completá lo que haga falta.
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="not needs_human">
+                        El buddy no encontró la respuesta en la documentación. Si es un tema de la empresa, conviene escribir o
+                        completar un documento en Drive: en la próxima sincronización Buddy ya lo va a poder usar.
+                    </div>
+                    <group>
+                        <group string="Consulta">
+                            <field name="create_date" string="Fecha"/>
+                            <field name="needs_human"/>
+                            <field name="confidence"/>
+                            <field name="conflict"/>
+                            <field name="error"/>
+                            <field name="question" colspan="2" placeholder="No se guardó el texto (solo se guarda si Buddy no supo responder o si activaste «Guardar preguntas»)."/>
+                        </group>
+                        <group string="Búsqueda en la documentación">
+                            <field name="retrieved_count"/>
+                            <field name="best_score"/>
+                            <field name="document_titles"/>
+                            <field name="document_ids" widget="many2many_tags" options="{'no_open': True}" groups="base.group_system"/>
+                            <field name="semantic_state"/>
+                            <field name="semantic_ms" invisible="not semantic_state"/>
+                        </group>
+                        <group string="Proveedor de IA">
+                            <field name="model_name"/>
+                            <field name="tokens_in"/>
+                            <field name="tokens_out"/>
+                            <field name="cost"/>
+                            <field name="latency_ms"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="buddy_insight_view_search" model="ir.ui.view">
+        <field name="name">buddy.insight.search</field>
+        <field name="model">buddy.insight</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="question"/>
+                <field name="document_titles" string="Documento"/>
+                <filter name="unanswered" string="Sin respuesta" domain="[('needs_human', '=', True)]"/>
+                <filter name="answered" string="Respondidas" domain="[('needs_human', '=', False), ('error', '=', False)]"/>
+                <separator/>
+                <filter name="conflicting" string="Documentos contradictorios" domain="[('conflict', '=', True)]"/>
+                <filter name="weak_evidence" string="Evidencia floja" domain="[('confidence', '=', 'low')]"/>
+                <separator/>
+                <filter name="with_error" string="Con error" domain="[('error', '!=', False)]"/>
+                <filter name="auth_error" string="Clave o permisos del proveedor" domain="[('error', '=', 'provider_auth')]"/>
+                <separator/>
+                <filter name="today" string="Hoy" domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="last_7" string="Últimos 7 días" domain="[('create_date', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="last_30" string="Últimos 30 días" domain="[('create_date', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_day" string="Día" context="{'group_by': 'create_date:day'}"/>
+                    <filter name="group_week" string="Semana" context="{'group_by': 'create_date:week'}"/>
+                    <filter name="group_month" string="Mes" context="{'group_by': 'create_date:month'}"/>
+                    <filter name="group_model" string="Modelo" context="{'group_by': 'model_name'}"/>
+                    <filter name="group_outcome" string="Resultado" context="{'group_by': 'outcome'}"/>
+                    <filter name="group_error" string="Error" context="{'group_by': 'error'}"/>
+                    <filter name="group_confidence" string="Confianza" context="{'group_by': 'confidence'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_insight_view_graph" model="ir.ui.view">
+        <field name="name">buddy.insight.graph</field>
+        <field name="model">buddy.insight</field>
+        <field name="arch" type="xml">
+            <graph string="Consultas por día" type="bar" stacked="1">
+                <field name="create_date" interval="day"/>
+                <field name="outcome"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="buddy_insight_view_pivot" model="ir.ui.view">
+        <field name="name">buddy.insight.pivot</field>
+        <field name="model">buddy.insight</field>
+        <field name="arch" type="xml">
+            <pivot string="Consultas por día">
+                <field name="create_date" interval="day" type="row"/>
+                <field name="outcome" type="col"/>
+                <field name="tokens_in" type="measure"/>
+                <field name="tokens_out" type="measure"/>
+                <field name="cost" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="buddy_insight_unanswered_action" model="ir.actions.act_window">
+        <field name="name">Preguntas sin respuesta</field>
+        <field name="res_model">buddy.insight</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="search_view_id" ref="buddy_insight_view_search"/>
+        <field name="context">{'search_default_unanswered': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay preguntas sin respuesta</p>
+            <p>Cuando alguien pregunta algo que no está en la documentación, el buddy lo anota acá (solo el texto de la
+               pregunta, sin el nombre de quien la hizo) y le ofrece a la persona crear un ticket. Mirá esta lista de vez en
+               cuando: cada pregunta repetida es un documento que falta en Drive.</p>
+        </field>
+    </record>
+
+    <record id="buddy_insight_usage_action" model="ir.actions.act_window">
+        <field name="name">Consultas por día</field>
+        <field name="res_model">buddy.insight</field>
+        <field name="view_mode">graph,pivot,list,form</field>
+        <field name="search_view_id" ref="buddy_insight_view_search"/>
+        <field name="context">{'search_default_last_30': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay consultas registradas</p>
+            <p>Cada consulta que atiende el buddy suma una fila: cuántas se contestaron, cuántas no, qué modelo se usó,
+               cuántos tokens consumió y cuánto tardó. Si cargás los precios en Ajustes también ves el costo estimado.</p>
+        </field>
+    </record>
+
+    <record id="buddy_insight_doubtful_action" model="ir.actions.act_window">
+        <field name="name">Respuestas dudosas</field>
+        <field name="res_model">buddy.insight</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="search_view_id" ref="buddy_insight_view_search"/>
+        <field name="domain">['|', ('conflict', '=', True), ('confidence', '=', 'low')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hubo respuestas dudosas</p>
+            <p>Acá aparecen las consultas en las que dos documentos decían cosas distintas sobre lo mismo, o en las que la
+               documentación tocaba el tema pero no traía el dato. El buddy lo aclaró en su respuesta y mandó a la persona a
+               confirmarlo; cada una es un documento para unificar o completar en Drive.</p>
+        </field>
+    </record>
+
+    <menuitem id="buddy_menu_insights" name="Uso y preguntas" parent="buddy_menu_root" sequence="30"
+              groups="base.group_system,buddy_ia.group_buddy_manager"/>
+    <menuitem id="buddy_menu_unanswered" name="Preguntas sin respuesta" parent="buddy_menu_insights"
+              action="buddy_insight_unanswered_action" sequence="10" groups="base.group_system,buddy_ia.group_buddy_manager"/>
+    <menuitem id="buddy_menu_doubtful" name="Respuestas dudosas" parent="buddy_menu_insights"
+              action="buddy_insight_doubtful_action" sequence="15" groups="base.group_system,buddy_ia.group_buddy_manager"/>
+    <menuitem id="buddy_menu_usage" name="Consultas por día" parent="buddy_menu_insights"
+              action="buddy_insight_usage_action" sequence="20" groups="base.group_system,buddy_ia.group_buddy_manager"/>
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <!-- Settings screen: the characters as cards. The avatars use the same component as the chat widget. -->
+  <t t-name="buddy_ia.CharacterPicker">
+    <div class="o_buddy_preview o_buddy_picker" role="radiogroup" t-att-aria-label="groupLabel" t-att-style="look.style">
+      <button t-foreach="options" t-as="option" t-key="option.value" type="button" role="radio"
+              class="o_buddy_picker_card" t-att-class="{'is-selected': option.value === selected}"
+              t-att-aria-checked="option.value === selected ? 'true' : 'false'"
+              t-att-disabled="props.readonly" t-on-click="() => this.choose(option.value)">
+        <span class="o_buddy_picker_art">
+          <BuddyAvatar buddy="option.value" accessory="look.accessory" expression="'happy'" size="92"/>
+        </span>
+        <span class="o_buddy_picker_name" t-esc="option.label"/>
+      </button>
+    </div>
+  </t>
+
+  <t t-name="buddy_ia.Chips">
+    <div class="o_buddy_chips_field" role="radiogroup">
+      <button t-foreach="options" t-as="option" t-key="option.value" type="button" role="radio"
+              class="btn btn-sm" t-att-class="option.value === selected ? 'btn-primary' : 'btn-outline-secondary'"
+              t-att-aria-checked="option.value === selected ? 'true' : 'false'"
+              t-att-disabled="props.readonly" t-on-click="() => this.choose(option.value)" t-esc="option.label"/>
+    </div>
+  </t>
+
+  <t t-name="buddy_ia.Preview">
+    <div class="o_buddy_preview o_buddy_preview_box" t-att-style="look.style">
+      <div class="o_buddy_preview_stage">
+        <BuddyAvatar buddy="look.buddy" accessory="look.accessory" expression="state.expression"
+                     gesture="state.gesture" waving="state.waving" size="previewSize"/>
+      </div>
+      <div class="o_buddy_preview_controls">
+        <div class="o_buddy_preview_group">
+          <span class="o_buddy_preview_label">Expresiones</span>
+          <button t-foreach="expressions" t-as="item" t-key="item.id" type="button"
+                  class="btn btn-sm" t-att-class="item.id === state.expression ? 'btn-primary' : 'btn-outline-secondary'"
+                  t-on-click="() => this.setExpression(item.id)" t-esc="item.label"/>
+          <button type="button" class="btn btn-sm" t-att-class="state.waving ? 'btn-primary' : 'btn-outline-secondary'"
+                  t-on-click="toggleWave">Saluda</button>
+        </div>
+        <div t-foreach="gestureGroups" t-as="group" t-key="group.id" class="o_buddy_preview_group">
+          <span class="o_buddy_preview_label">Gestos: <t t-esc="group.label"/></span>
+          <button t-foreach="group.gestures" t-as="item" t-key="item.id" type="button"
+                  class="btn btn-sm btn-outline-secondary o_buddy_try" t-on-click="() => this.play(item.id)" t-esc="item.label"/>
+        </div>
+      </div>
+    </div>
+  </t>
+
+</templates>

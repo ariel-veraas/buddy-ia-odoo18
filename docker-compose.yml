@@ -1,0 +1,74 @@
+name: odoo-buddy-v2
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python tools/manage.py prepare first}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  odoo:
+    # Long-running service: database credentials only. Generated user passwords and the demo provider key are
+    # never part of its permanent environment (visible in `docker inspect` and /proc/*/environ).
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: buddy
+    image: buddy-odoo-v2:local
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8070:8069"
+    environment:
+      ODOO_RC: /etc/odoo/odoo.conf
+      HOST: db
+      PORT: "5432"
+      USER: odoo
+      PASSWORD: ${POSTGRES_PASSWORD:?Run python tools/manage.py prepare first}
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./.config/odoo.conf:/etc/odoo/odoo.conf:ro
+  odoo-setup:
+    # One-shot installer steps (admin password, demo seed) run through `docker compose run`; never started by `up`.
+    profiles: ["setup"]
+    image: buddy-odoo-v2:local
+    environment:
+      ODOO_RC: /etc/odoo/odoo.conf
+      HOST: db
+      PORT: "5432"
+      USER: odoo
+      PASSWORD: ${POSTGRES_PASSWORD:?Run python tools/manage.py prepare first}
+      BUDDY_ADMIN_PASSWORD: ${BUDDY_ADMIN_PASSWORD:?Run python tools/manage.py prepare first}
+      BUDDY_ANA_PASSWORD: ${BUDDY_ANA_PASSWORD:?Run python tools/manage.py prepare first}
+      BUDDY_LEO_PASSWORD: ${BUDDY_LEO_PASSWORD:?Run python tools/manage.py prepare first}
+      BUDDY_API_KEY: ${BUDDY_STUB_API_KEY:?Run python tools/manage.py prepare first}
+      BUDDY_BOOTSTRAP_DATABASE: ${BUDDY_DB:-buddy_v2}
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./.config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./demo:/mnt/demo:ro
+  stub-llm:
+    profiles: ["demo"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: stub-llm
+    environment:
+      STUB_DIMS: "256"
+    ports:
+      - "127.0.0.1:9101:9100"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9100/v1/models', timeout=2).read()"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  db-data:
+  odoo-data:

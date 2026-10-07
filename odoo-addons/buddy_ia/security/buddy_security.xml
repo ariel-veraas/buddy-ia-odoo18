@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Gestor de Buddy: atiende los tickets y mira las estadísticas (preguntas sin respuesta, uso, costo). Los administradores
+         lo son automáticamente. No toca la configuración, las claves ni las carpetas: eso sigue siendo solo de administradores. -->
+    <!-- IMPORTANTE: «Administración / Ajustes» NO implica este grupo (desde 18.0.4.7.0). Los administradores tienen su acceso
+         propio, explícito, en los permisos, reglas y menús de abajo. Así el grupo se puede dar (o quitar) a una persona
+         concreta sin que nada cambie para los demás. -->
+    <record id="module_category_buddy_ia" model="ir.module.category">
+        <field name="name">Buddy IA</field>
+        <field name="sequence">90</field>
+    </record>
+    <record id="group_buddy_manager" model="res.groups">
+        <field name="name">Gestor de Buddy</field>
+        <field name="category_id" ref="module_category_buddy_ia"/>
+        <field name="comment">Ve todos los tickets del Buddy, los atiende y consulta las estadísticas de uso. No puede cambiar la configuración. Los administradores no lo necesitan: ya tienen ese acceso.</field>
+    </record>
+
+    <!-- Responsable de onboarding: arma recorridos, los asigna y ve el avance de las personas A QUIENES ASIGNÓ. No ve conversaciones,
+         estadísticas ni la configuración (nada de esto toca el contenido del chat). Los administradores no lo necesitan. -->
+    <record id="group_journey_manager" model="res.groups">
+        <field name="name">Responsable de onboarding</field>
+        <field name="category_id" ref="module_category_buddy_ia"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Crea recorridos de onboarding, los asigna a las personas y mira su avance (solo de quienes asignó). No ve las conversaciones del buddy ni las estadísticas de chat.</field>
+    </record>
+
+    <!-- Cada usuario ve solo sus tickets; el gestor y el administrador ven todos. -->
+    <record id="buddy_ticket_rule_own" model="ir.rule">
+        <field name="name">Buddy ticket: solo los propios</field>
+        <field name="model_id" ref="model_buddy_ticket"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_ticket_rule_admin" model="ir.rule">
+        <field name="name">Buddy ticket: administrador ve todos</field>
+        <field name="model_id" ref="model_buddy_ticket"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_ticket_rule_manager" model="ir.rule">
+        <field name="name">Buddy ticket: el gestor ve todos</field>
+        <field name="model_id" ref="model_buddy_ticket"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_buddy_manager'))]"/>
+    </record>
+
+    <!-- Estadísticas de las consultas: solo el gestor (y el administrador, que lo es). Sin acceso para nadie más:
+         ni siquiera quien hizo la pregunta ve su propia fila. -->
+    <record id="buddy_insight_rule_manager" model="ir.rule">
+        <field name="name">Buddy estadística: el gestor y el administrador ven todas</field>
+        <field name="model_id" ref="model_buddy_insight"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_buddy_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- Opiniones (👍 / 👎) sobre las respuestas: anónimas; las ve el gestor y el administrador, nadie más (ni quien votó).
+         El gestor las ve desde el día siguiente (las marca `visible` el cron diario): mirar la lista cada minuto delataría la
+         hora de cada voto (y con eso, quién fue). El administrador las ve enseguida (puede mirar la base de todos modos). -->
+    <record id="buddy_feedback_rule_manager" model="ir.rule">
+        <field name="name">Buddy opinión: el gestor ve las de días anteriores</field>
+        <field name="model_id" ref="model_buddy_feedback"/>
+        <field name="domain_force">[('visible', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_buddy_manager'))]"/>
+    </record>
+    <record id="buddy_feedback_rule_admin" model="ir.rule">
+        <field name="name">Buddy opinión: el administrador ve todas</field>
+        <field name="model_id" ref="model_buddy_feedback"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- Resumen semanal «Qué falta documentar»: lo leen el gestor y el administrador, nadie más. Se escribe solo por el cron (o el botón
+         de Ajustes, solo administradores). Qué títulos de documentos y de carpetas ve cada uno lo deciden las reglas de documentos y de
+         carpetas al ABRIRLO (no se guardan títulos); las secciones de carpetas y de onboarding las ven solo los administradores. -->
+    <record id="buddy_digest_rule_manager" model="ir.rule">
+        <field name="name">Buddy resumen semanal: el gestor y el administrador lo ven</field>
+        <field name="model_id" ref="model_buddy_digest"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_buddy_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- Carpetas de Drive: cada empleado consulta solo las de sus grupos (deny-by-default: sin grupos, nadie).
+         Los documentos y fragmentos heredan la regla de su carpeta. El administrador ve todo. -->
+    <record id="buddy_rule_source_user" model="ir.rule">
+        <field name="name">Buddy carpeta: las de mis grupos</field>
+        <field name="model_id" ref="model_buddy_source"/>
+        <field name="domain_force">[('group_ids', 'in', user.groups_id.ids), ('active', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_rule_source_admin" model="ir.rule">
+        <field name="name">Buddy carpeta: el administrador ve todas</field>
+        <field name="model_id" ref="model_buddy_source"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_rule_document_user" model="ir.rule">
+        <field name="name">Buddy documento: los de mis carpetas</field>
+        <field name="model_id" ref="model_buddy_document"/>
+        <field name="domain_force">[('source_id.group_ids', 'in', user.groups_id.ids), ('source_id.active', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_rule_document_admin" model="ir.rule">
+        <field name="name">Buddy documento: el administrador ve todos</field>
+        <field name="model_id" ref="model_buddy_document"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_rule_chunk_user" model="ir.rule">
+        <field name="name">Buddy fragmento: los de mis carpetas</field>
+        <field name="model_id" ref="model_buddy_chunk"/>
+        <field name="domain_force">[('source_id.group_ids', 'in', user.groups_id.ids), ('source_id.active', '=', True)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_rule_chunk_admin" model="ir.rule">
+        <field name="name">Buddy fragmento: el administrador ve todos</field>
+        <field name="model_id" ref="model_buddy_chunk"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- Recorridos de onboarding. Deny-by-default: cada persona lee SOLO los recorridos que le asignaron, su asignación y su avance
+         (y solo puede tildar sus pasos); el responsable de onboarding ve los recorridos y el avance de quienes ÉL asignó;
+         el administrador ve todo. Las reglas de grupos distintos se suman. -->
+    <record id="buddy_journey_rule_user" model="ir.rule">
+        <field name="name">Buddy recorrido: los que me asignaron</field>
+        <field name="model_id" ref="model_buddy_journey"/>
+        <field name="domain_force">[('assignment_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_journey_rule_manager" model="ir.rule">
+        <field name="name">Buddy recorrido: el responsable y el administrador ven todos</field>
+        <field name="model_id" ref="model_buddy_journey"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_journey_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_journey_step_rule_user" model="ir.rule">
+        <field name="name">Buddy paso: los de mis recorridos</field>
+        <field name="model_id" ref="model_buddy_journey_step"/>
+        <field name="domain_force">[('journey_id.assignment_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_journey_step_rule_manager" model="ir.rule">
+        <field name="name">Buddy paso: el responsable y el administrador ven todos</field>
+        <field name="model_id" ref="model_buddy_journey_step"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_journey_manager')), (4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_journey_assignment_rule_user" model="ir.rule">
+        <field name="name">Buddy asignación: la mía</field>
+        <field name="model_id" ref="model_buddy_journey_assignment"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_journey_assignment_rule_manager" model="ir.rule">
+        <field name="name">Buddy asignación: las que yo asigné</field>
+        <field name="model_id" ref="model_buddy_journey_assignment"/>
+        <field name="domain_force">[('assigner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_journey_manager'))]"/>
+    </record>
+    <record id="buddy_journey_assignment_rule_admin" model="ir.rule">
+        <field name="name">Buddy asignación: el administrador ve todas</field>
+        <field name="model_id" ref="model_buddy_journey_assignment"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+    <record id="buddy_journey_progress_rule_user" model="ir.rule">
+        <field name="name">Buddy avance: el mío</field>
+        <field name="model_id" ref="model_buddy_journey_progress"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="buddy_journey_progress_rule_manager" model="ir.rule">
+        <field name="name">Buddy avance: el de quienes yo asigné</field>
+        <field name="model_id" ref="model_buddy_journey_progress"/>
+        <field name="domain_force">[('assigner_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('buddy_ia.group_journey_manager'))]"/>
+    </record>
+    <record id="buddy_journey_progress_rule_admin" model="ir.rule">
+        <field name="name">Buddy avance: el administrador ve todo</field>
+        <field name="model_id" ref="model_buddy_journey_progress"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+</odoo>

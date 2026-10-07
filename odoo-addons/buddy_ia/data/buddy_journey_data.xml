@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tipo de actividad de los recordatorios de onboarding (una sola por persona y recorrido). -->
+    <data noupdate="1">
+        <record id="activity_type_journey" model="mail.activity.type">
+            <field name="name">Onboarding</field>
+            <field name="icon">fa-flag</field>
+            <field name="res_model">buddy.journey.assignment</field>
+            <field name="delay_count">0</field>
+            <field name="category">default</field>
+            <field name="summary">Tareas de onboarding para hoy</field>
+        </record>
+    </data>
+
+    <!-- Una vez por día (a las 08:00 de Argentina): asigna los recorridos «solo a las personas nuevas» y crea o cierra los
+         recordatorios. Sin trabajo si nadie lo usa. -->
+    <record id="buddy_cron_journeys" model="ir.cron">
+        <field name="name">Buddy: onboarding (asignación automática y recordatorios)</field>
+        <field name="model_id" ref="model_buddy_journey"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_daily()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d 11:00:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Recorrido de ejemplo, ARCHIVADO: duplicalo («Duplicar y activar»), cambialo a tu medida y asignalo. Sin datos de personas.
+         noupdate: tus cambios no se pisan al actualizar. -->
+    <data noupdate="1">
+        <record id="buddy_journey_example" model="buddy.journey">
+            <field name="name">Ejemplo: primeros 30 días</field>
+            <field name="description">Un recorrido de ejemplo para las primeras semanas: conocer al equipo, tener los accesos, leer lo importante y hacer un balance al mes. Duplicalo y adaptalo a tu empresa.</field>
+            <field name="active" eval="False"/>
+        </record>
+        <record id="buddy_journey_example_step_1" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">10</field>
+            <field name="day_offset">0</field>
+            <field name="kind">task</field>
+            <field name="name">Conocé a tu equipo</field>
+            <field name="detail">Presentate con las personas de tu área y pedile a tu referente un recorrido por la oficina o por Odoo.</field>
+        </record>
+        <record id="buddy_journey_example_step_2" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">20</field>
+            <field name="day_offset">0</field>
+            <field name="kind">ask</field>
+            <field name="name">Preguntale al buddy cómo pedir un día libre</field>
+            <field name="detail">Probá el chat: es la forma más rápida de encontrar cualquier proceso de la empresa.</field>
+            <field name="question">¿Cómo pido un día libre?</field>
+        </record>
+        <record id="buddy_journey_example_step_3" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">30</field>
+            <field name="day_offset">1</field>
+            <field name="kind">task</field>
+            <field name="name">Revisá tus accesos</field>
+            <field name="detail">Confirmá que podés entrar a Odoo, al correo y a las herramientas de tu área. Si algo falla, avisale a Mesa de IT.</field>
+            <field name="contact_id" eval="ref('buddy_ia.buddy_contact_it', raise_if_not_found=False)"/>
+        </record>
+        <record id="buddy_journey_example_step_4" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">40</field>
+            <field name="day_offset">2</field>
+            <field name="kind">read</field>
+            <field name="name">Leé la guía de bienvenida</field>
+            <field name="detail">Leé la guía de bienvenida de tu área (la encontrás en los documentos de Buddy).</field>
+        </record>
+        <record id="buddy_journey_example_step_5" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">50</field>
+            <field name="day_offset">4</field>
+            <field name="kind">ask</field>
+            <field name="name">Preguntale al buddy por tus primeras tareas</field>
+            <field name="detail">Contale al buddy en qué área estás y pedile los procesos que más vas a usar.</field>
+            <field name="question">¿Qué procesos tengo que conocer en mi primera semana?</field>
+        </record>
+        <record id="buddy_journey_example_step_6" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">60</field>
+            <field name="day_offset">7</field>
+            <field name="kind">task</field>
+            <field name="name">Charla de la primera semana</field>
+            <field name="detail">Reunite con tu referente: cómo te fue, qué dudas quedaron y qué viene.</field>
+            <field name="contact_id" eval="ref('buddy_ia.buddy_contact_rrhh', raise_if_not_found=False)"/>
+        </record>
+        <record id="buddy_journey_example_step_7" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">70</field>
+            <field name="day_offset">14</field>
+            <field name="kind">task</field>
+            <field name="name">Acordá tu primer objetivo</field>
+            <field name="detail">Definí con tu referente un objetivo concreto para el primer mes.</field>
+        </record>
+        <record id="buddy_journey_example_step_8" model="buddy.journey.step">
+            <field name="journey_id" ref="buddy_journey_example"/>
+            <field name="sequence">80</field>
+            <field name="day_offset">30</field>
+            <field name="kind">task</field>
+            <field name="name">Balance del primer mes</field>
+            <field name="detail">Repasá con tu referente lo que lograste y lo que sigue. Contale a RR.HH. cómo te sentiste.</field>
+            <field name="is_required" eval="False"/>
+            <field name="contact_id" eval="ref('buddy_ia.buddy_contact_rrhh', raise_if_not_found=False)"/>
+        </record>
+    </data>
+</odoo>

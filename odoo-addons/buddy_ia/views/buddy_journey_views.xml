@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================ Recorridos ============================ -->
+    <record id="buddy_journey_view_list" model="ir.ui.view">
+        <field name="name">buddy.journey.list</field>
+        <field name="model">buddy.journey</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="not active">
+                <field name="active" column_invisible="1"/>
+                <field name="name"/>
+                <field name="step_count" string="Pasos"/>
+                <field name="assignment_count" string="Personas" groups="base.group_system,buddy_ia.group_journey_manager"/>
+                <field name="auto_assign" string="Automático" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_journey_view_form" model="ir.ui.view">
+        <field name="name">buddy.journey.form</field>
+        <field name="model">buddy.journey</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_assign" type="object" string="Asignar a personas" class="btn-primary" invisible="not active"/>
+                    <button name="action_duplicate_activate" type="object" string="Duplicar y activar" class="btn-primary" invisible="active"
+                            help="Crea una copia activa de este recorrido para que la adaptes a tu empresa: este queda como está."/>
+                    <button name="action_duplicate_activate" type="object" string="Duplicar" invisible="not active"
+                            help="Crea una copia de este recorrido para adaptarla."/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_open_assignments" icon="fa-users" invisible="not assignment_count"
+                                groups="base.group_system,buddy_ia.group_journey_manager">
+                            <field name="assignment_count" widget="statinfo" string="Personas"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Por ejemplo: Primeros 30 días de ventas"/></h1>
+                    </div>
+                    <field name="active" invisible="1"/>
+                    <field name="description" placeholder="Para quién es y qué busca lograr (la persona lo ve)."/>
+                    <div class="alert alert-warning" role="alert" invisible="active">
+                        Este recorrido está archivado: nadie ve sus tareas ni recibe recordatorios. Para usarlo, tocá <strong>«Duplicar y activar»</strong>:
+                        te queda una copia tuya para adaptar y este ejemplo no se toca.
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        Cada paso toca un número de <strong>días desde el ingreso</strong>: <strong>0 es el mismo día</strong>, 7 una semana después,
+                        30 el primer mes. Las personas ven sus tareas de hoy en el chat de Buddy (el día del ingreso ven «Día 1») y reciben un
+                        recordatorio en Odoo.
+                    </div>
+                    <notebook>
+                        <page string="Pasos" name="steps">
+                            <field name="step_ids">
+                                <list editable="bottom" decoration-warning="kind == 'read' and not document_id and not url">
+                                    <field name="day_offset" string="Día"/>
+                                    <field name="name"/>
+                                    <field name="kind"/>
+                                    <field name="is_required" string="Oblig."/>
+                                    <field name="document_id" optional="show" options="{'no_create': True}"/>
+                                    <field name="url" optional="show" widget="url"/>
+                                    <field name="question" optional="show"/>
+                                    <field name="contact_id" optional="show" options="{'no_create': True}"/>
+                                    <field name="detail" optional="show"/>
+                                </list>
+                            </field>
+                            <div class="text-muted">
+                                «Día» son los días desde el ingreso (0 = el mismo día). Un paso de tipo «Leer un documento» sin documento ni enlace se
+                                marca en amarillo: la persona vería solo el título.
+                            </div>
+                        </page>
+                        <page string="Asignación automática" name="auto">
+                            <div class="alert alert-info" role="alert">
+                                Si lo activás, las personas que se <strong>creen en Odoo desde ese momento</strong> y pertenezcan a alguno de los grupos
+                                que elijas reciben este recorrido solas; su <strong>fecha de ingreso es la fecha en que se creó su usuario</strong>
+                                (la podés corregir después en la asignación). <strong>Nunca</strong> se asigna a quienes ya existen: para ellas usá
+                                «Asignar a personas».
+                            </div>
+                            <group>
+                                <field name="auto_assign"/>
+                                <field name="group_ids" widget="many2many_tags" options="{'no_create': True}" invisible="not auto_assign"
+                                       required="auto_assign"/>
+                                <field name="auto_since" invisible="not auto_assign"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="buddy_journey_view_search" model="ir.ui.view">
+        <field name="name">buddy.journey.search</field>
+        <field name="model">buddy.journey</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="active_only" string="Activos" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archivados (en gris)" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_journey_action" model="ir.actions.act_window">
+        <field name="name">Recorridos de onboarding</field>
+        <field name="res_model">buddy.journey</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="buddy_journey_view_search"/>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay recorridos</p>
+            <p>Un recorrido es una lista de pasos (conocer al equipo, leer un documento, preguntarle algo al buddy…) que cada persona
+               nueva va haciendo según los días desde su ingreso: día 1, semana 1, mes 1.</p>
+            <p>Para empezar rápido, abrí el recorrido «Ejemplo: primeros 30 días» (sale en gris: está archivado) y tocá «Duplicar y activar».</p>
+        </field>
+    </record>
+
+    <!-- ============================ Asignaciones ============================ -->
+    <record id="buddy_journey_assignment_view_list" model="ir.ui.view">
+        <field name="name">buddy.journey.assignment.list</field>
+        <field name="model">buddy.journey.assignment</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-danger="overdue_count &gt; 0" decoration-muted="state == 'cancelled'">
+                <field name="user_id"/>
+                <field name="journey_id"/>
+                <field name="start_date"/>
+                <field name="progress_pct" widget="progressbar" string="Avance"/>
+                <field name="overdue_count" string="Atrasados"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state == 'active'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_journey_assignment_view_form" model="ir.ui.view">
+        <field name="name">buddy.journey.assignment.form</field>
+        <field name="model">buddy.journey.assignment</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_cancel" type="object" string="Cancelar el recorrido" invisible="state == 'cancelled' or not can_manage"
+                            confirm="¿Cancelar este recorrido para esta persona? Deja de ver sus tareas y de recibir recordatorios; el avance se conserva."/>
+                    <button name="action_reactivate" type="object" string="Reactivar" invisible="state != 'cancelled' or not can_manage"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,done"/>
+                </header>
+                <sheet>
+                    <field name="can_manage" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="journey_id"/>
+                            <field name="start_date" readonly="not can_manage or state == 'cancelled'"/>
+                        </group>
+                        <group>
+                            <field name="progress_pct" widget="progressbar" string="Avance"/>
+                            <field name="done_count" string="Pasos hechos"/>
+                            <field name="total_count" string="Pasos en total"/>
+                            <field name="overdue_count" string="Atrasados"/>
+                            <field name="assigner_id" invisible="not can_manage"/>
+                        </group>
+                    </group>
+                    <field name="progress_ids" readonly="1">
+                        <list decoration-danger="overdue" decoration-success="done" create="0" delete="0" edit="0">
+                            <field name="due_date"/>
+                            <field name="step_id"/>
+                            <field name="is_required" string="Obligatorio"/>
+                            <field name="done"/>
+                            <field name="done_date"/>
+                            <field name="overdue" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="buddy_journey_assignment_view_search" model="ir.ui.view">
+        <field name="name">buddy.journey.assignment.search</field>
+        <field name="model">buddy.journey.assignment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="user_id"/>
+                <field name="journey_id"/>
+                <filter name="active_state" string="En curso" domain="[('state', '=', 'active')]"/>
+                <filter name="done_state" string="Completados" domain="[('state', '=', 'done')]"/>
+                <filter name="cancelled_state" string="Cancelados" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="with_overdue" string="Con atrasos"
+                        domain="[('state', '=', 'active'), ('progress_ids', 'any', [('overdue', '=', True), ('is_required', '=', True)])]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_journey" string="Recorrido" context="{'group_by': 'journey_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_start" string="Fecha de ingreso" context="{'group_by': 'start_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_journey_assignment_action" model="ir.actions.act_window">
+        <field name="name">Asignaciones de onboarding</field>
+        <field name="res_model">buddy.journey.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="buddy_journey_assignment_view_search"/>
+        <field name="context">{'search_default_active_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Nadie tiene un recorrido asignado todavía</p>
+            <p>Abrí un recorrido y tocá «Asignar a personas», o seleccioná personas en la lista de usuarios y elegí
+               «Asignar recorrido de onboarding» en el menú Acciones.</p>
+        </field>
+    </record>
+
+    <!-- ============================ Avance ============================ -->
+    <record id="buddy_journey_progress_view_list" model="ir.ui.view">
+        <field name="name">buddy.journey.progress.list</field>
+        <field name="model">buddy.journey.progress</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-danger="overdue" decoration-success="done">
+                <field name="user_id"/>
+                <field name="journey_id"/>
+                <field name="step_id"/>
+                <field name="due_date"/>
+                <field name="is_required" string="Obligatorio" optional="show"/>
+                <field name="done"/>
+                <field name="done_date" optional="show"/>
+                <field name="overdue" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_journey_overdue_view_list" model="ir.ui.view">
+        <field name="name">buddy.journey.progress.overdue.list</field>
+        <field name="model">buddy.journey.progress</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-danger="1" default_order="due_date">
+                <field name="user_id"/>
+                <field name="journey_id"/>
+                <field name="step_id"/>
+                <field name="due_date" string="Vencía el"/>
+                <field name="late_days"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_journey_progress_view_pivot" model="ir.ui.view">
+        <field name="name">buddy.journey.progress.pivot</field>
+        <field name="model">buddy.journey.progress</field>
+        <field name="arch" type="xml">
+            <pivot string="Avance por paso">
+                <field name="journey_id" type="row"/>
+                <field name="step_id" type="row"/>
+                <field name="done_pct" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="buddy_journey_progress_view_graph" model="ir.ui.view">
+        <field name="name">buddy.journey.progress.graph</field>
+        <field name="model">buddy.journey.progress</field>
+        <field name="arch" type="xml">
+            <graph string="% completado por paso" type="bar">
+                <field name="step_id"/>
+                <field name="done_pct" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="buddy_journey_progress_view_search" model="ir.ui.view">
+        <field name="name">buddy.journey.progress.search</field>
+        <field name="model">buddy.journey.progress</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="user_id"/>
+                <field name="journey_id"/>
+                <field name="step_id"/>
+                <filter name="overdue" string="Atrasados" domain="[('overdue', '=', True), ('is_required', '=', True)]"/>
+                <filter name="pending" string="Pendientes" domain="[('done', '=', False)]"/>
+                <filter name="done" string="Hechos" domain="[('done', '=', True)]"/>
+                <filter name="required" string="Obligatorios" domain="[('is_required', '=', True)]"/>
+                <filter name="following" string="En curso" domain="[('assignment_id.state', '=', 'active'), ('journey_id.active', '=', True)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_journey" string="Recorrido" context="{'group_by': 'journey_id'}"/>
+                    <filter name="group_step" string="Paso" context="{'group_by': 'step_id'}"/>
+                    <filter name="group_user" string="Persona" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_journey_progress_action" model="ir.actions.act_window">
+        <field name="name">Avance del onboarding</field>
+        <field name="res_model">buddy.journey.progress</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="search_view_id" ref="buddy_journey_progress_view_search"/>
+        <field name="context">{'search_default_following': 1, 'search_default_required': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay avance para mostrar</p>
+            <p>Cuando asignes un recorrido a alguien, acá ves qué porcentaje de las personas completó cada paso (por defecto, solo
+               los pasos obligatorios de quienes siguen su recorrido: el mismo conteo que en Asignaciones). Con el filtro
+               «Atrasados», la cantidad de personas que van tarde en cada uno.</p>
+        </field>
+    </record>
+
+    <record id="buddy_journey_overdue_action" model="ir.actions.act_window">
+        <field name="name">Pasos atrasados</field>
+        <field name="res_model">buddy.journey.progress</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="search_view_id" ref="buddy_journey_progress_view_search"/>
+        <field name="context">{'search_default_overdue': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay pasos atrasados</p>
+            <p>Un paso está atrasado cuando era para antes de hoy, es obligatorio y la persona todavía no lo tildó.</p>
+        </field>
+    </record>
+
+    <!-- ============================ Asignar recorrido (varias personas) ============================ -->
+    <record id="buddy_journey_assign_view_form" model="ir.ui.view">
+        <field name="name">buddy.journey.assign.form</field>
+        <field name="model">buddy.journey.assign</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="journey_id" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="user_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="start_date"/>
+                </group>
+                <div class="alert alert-warning" role="alert" invisible="not start_warning">
+                    <field name="start_warning" nolabel="1"/>
+                </div>
+                <div class="text-muted">
+                    Solo se asigna a personas internas y activas. Las que ya tienen este recorrido no se tocan. Cada una ve sus tareas en el
+                    chat de Buddy y recibe un recordatorio en Odoo los días que tenga algo para hacer.
+                </div>
+                <footer>
+                    <button name="action_assign" type="object" string="Asignar" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancelar" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Desde la lista de usuarios: selecciono personas y las asigno de una vez. -->
+    <record id="buddy_journey_assign_users_action" model="ir.actions.act_window">
+        <field name="name">Asignar recorrido de onboarding</field>
+        <field name="res_model">buddy.journey.assign</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="base.model_res_users"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('base.group_system')), (4, ref('buddy_ia.group_journey_manager'))]"/>
+    </record>
+
+    <record id="buddy_journey_overdue_action_list" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="buddy_journey_overdue_view_list"/>
+        <field name="act_window_id" ref="buddy_journey_overdue_action"/>
+    </record>
+
+    <menuitem id="buddy_menu_onboarding" name="Onboarding" parent="buddy_menu_root" sequence="25"
+              groups="base.group_system,buddy_ia.group_journey_manager"/>
+    <menuitem id="buddy_menu_journeys" name="Recorridos" parent="buddy_menu_onboarding" action="buddy_journey_action" sequence="10"
+              groups="base.group_system,buddy_ia.group_journey_manager"/>
+    <menuitem id="buddy_menu_assignments" name="Asignaciones" parent="buddy_menu_onboarding" action="buddy_journey_assignment_action" sequence="20"
+              groups="base.group_system,buddy_ia.group_journey_manager"/>
+    <menuitem id="buddy_menu_progress" name="Avance" parent="buddy_menu_onboarding" action="buddy_journey_progress_action" sequence="30"
+              groups="base.group_system,buddy_ia.group_journey_manager"/>
+    <menuitem id="buddy_menu_overdue" name="Pasos atrasados" parent="buddy_menu_onboarding" action="buddy_journey_overdue_action" sequence="40"
+              groups="base.group_system,buddy_ia.group_journey_manager"/>
+</odoo>

@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "description": "Documentos SINTETICOS de la evaluacion (E3). El corredor (tools/eval_suite.py) los crea en una carpeta «eval-sintetica» visible solo para un grupo propio de la evaluacion (que solo tiene el usuario descartable buddy_eval_syn) y los borra al terminar. Hablan de temas que no estan en los documentos reales para no mezclarse. Nunca los ven los usuarios reales.",
+  "source": "eval-sintetica",
+  "group": "Buddy: evaluacion sintetica (no usar)",
+  "user_login": "buddy_eval_syn",
+  "documents": [
+    {
+      "key": "gastos-2023",
+      "name": "Politica de Gastos y Reintegros 2023",
+      "text": "Politica de Gastos y Reintegros (version 2023).\nLos gastos de viaje y de representacion se reintegran a la persona que los hizo. El reintegro de los gastos de viaje se paga dentro de los 15 dias habiles posteriores a la presentacion de los comprobantes en el sistema de rendiciones. Si faltan comprobantes, el plazo se cuenta desde que se completan."
+    },
+    {
+      "key": "gastos-guia-2024",
+      "name": "Guia Rapida de Administracion 2024",
+      "text": "Guia Rapida de Administracion (2024).\nRendicion de gastos de viaje: se carga la rendicion con sus comprobantes y Administracion la revisa. El reintegro de los gastos de viaje se acredita a los 30 dias corridos desde que se presenta la rendicion, junto con la liquidacion del mes."
+    },
+    {
+      "key": "notebooks-politica",
+      "name": "Politica de Equipamiento Informatico",
+      "text": "Politica de Equipamiento Informatico.\nA cada persona se le asigna una notebook al ingresar. Las notebooks se renuevan cada 3 anios, siempre que el equipo no tenga danos por mal uso. El pedido de renovacion lo inicia la persona desde la mesa de IT."
+    },
+    {
+      "key": "notebooks-faq",
+      "name": "Preguntas Frecuentes de IT",
+      "text": "Preguntas frecuentes de IT.\nSobre el equipamiento: el recambio de notebooks del personal se hace cada 4 anios. Si tu equipo falla antes, avisa a la mesa de IT para evaluarlo."
+    },
+    {
+      "key": "descuentos-comercial",
+      "name": "Manual de Ventas y Descuentos",
+      "text": "Manual de Ventas y Descuentos.\nLos descuentos comerciales de hasta 10 por ciento los puede dar cada vendedor. Los descuentos de mas del 10 por ciento sobre la lista de precios los aprueba la Gerencia Comercial antes de enviar la propuesta al cliente."
+    },
+    {
+      "key": "descuentos-direccion",
+      "name": "Circular de Direccion sobre Precios",
+      "text": "Circular de Direccion sobre Precios.\nPara cuidar el margen, cualquier descuento de mas del 10 por ciento sobre la lista de precios debe ser aprobado por la Direccion General. La Gerencia Comercial solo informa el pedido."
+    },
+    {
+      "key": "teletrabajo-politica",
+      "name": "Politica de Teletrabajo",
+      "text": "Politica de Teletrabajo.\nPodes teletrabajar 2 dias por semana. Los dias se acuerdan con tu lider para que el equipo este coordinado."
+    },
+    {
+      "key": "teletrabajo-faq",
+      "name": "Preguntas Frecuentes de Recursos Humanos",
+      "text": "Preguntas frecuentes de Recursos Humanos.\nTeletrabajo: son 2 dias por semana, acordados con tu lider. Los dias de oficina son los otros tres."
+    },
+    {
+      "key": "viaticos-guia",
+      "name": "Guia de Viaticos",
+      "text": "Guia de Viaticos.\nLos viaticos se rigen por la escala vigente que define Administracion. Los montos se comunican por correo a todo el personal cada trimestre."
+    },
+    {
+      "key": "gimnasio-beneficio",
+      "name": "Beneficios para el Personal",
+      "text": "Beneficios para el personal.\nLa empresa tiene un convenio con gimnasios de la zona. El detalle de cuales entran en el convenio y las condiciones se consulta con Capital Humano."
+    },
+    {
+      "key": "licencias-guia",
+      "name": "Guia de Licencias Especiales",
+      "text": "Guia de Licencias Especiales.\nPor el nacimiento de un hijo corresponde una licencia especial. La duracion se define segun la normativa vigente y se confirma con Capital Humano al presentar el certificado."
+    },
+    {
+      "key": "cocina-guia",
+      "name": "Guia de la Oficina",
+      "text": "Guia de la Oficina.\nEl cafe, el te y la yerba estan en la cocina del segundo piso, al lado de la maquina de agua. Cada persona lava su taza."
+    }
+  ]
+}

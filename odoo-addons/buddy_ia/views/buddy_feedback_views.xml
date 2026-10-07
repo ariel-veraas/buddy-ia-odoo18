@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Calidad de las respuestas: los 👍 / 👎 anónimos. Solo lectura: las filas las escribe el motor del Buddy y no dicen
+         quién votó (ni la hora: solo el día). -->
+    <record id="buddy_feedback_view_list" model="ir.ui.view">
+        <field name="name">buddy.feedback.list</field>
+        <field name="model">buddy.feedback</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" decoration-warning="value == 'down'">
+                <field name="day"/>
+                <field name="value"/>
+                <field name="reason"/>
+                <field name="question"/>
+                <field name="document_titles" optional="show"/>
+                <field name="positive" widget="percentage" optional="hide" avg="% positivos"/>
+                <field name="model_name" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_feedback_view_form" model="ir.ui.view">
+        <field name="name">buddy.feedback.form</field>
+        <field name="model">buddy.feedback</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="value != 'down' or not question">
+                        La persona pidió incluir su pregunta para mejorar a Buddy. Si el caso muestra algo que falta o está mal
+                        en la documentación, corregilo en Drive; también podés pasarlo al conjunto de pruebas con
+                        <code>tools/export_feedback_cases.py</code>.
+                    </div>
+                    <group>
+                        <group string="Voto">
+                            <field name="day"/>
+                            <field name="value"/>
+                            <field name="reason" invisible="not reason"/>
+                            <field name="question" colspan="2" placeholder="No se guardó el texto (solo se guarda si la persona tildó «Incluir mi pregunta para mejorar a Buddy» o si activaste «Guardar preguntas»)."/>
+                        </group>
+                        <group string="Respuesta">
+                            <field name="document_titles"/>
+                            <field name="document_ids" widget="many2many_tags" options="{'no_open': True}" groups="base.group_system"/>
+                            <field name="model_name"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="buddy_feedback_view_search" model="ir.ui.view">
+        <field name="name">buddy.feedback.search</field>
+        <field name="model">buddy.feedback</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="question"/>
+                <field name="document_ids" string="Documento" groups="base.group_system"/>
+                <filter name="down" string="👎 No útiles" domain="[('value', '=', 'down')]"/>
+                <filter name="up" string="👍 Útiles" domain="[('value', '=', 'up')]"/>
+                <filter name="with_question" string="Con pregunta incluida" domain="[('question', '!=', False)]"/>
+                <separator/>
+                <filter name="last_7" string="Últimos 7 días" domain="[('day', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="last_30" string="Últimos 30 días" domain="[('day', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_day" string="Día" context="{'group_by': 'day:day'}"/>
+                    <filter name="group_week" string="Semana" context="{'group_by': 'day:week'}"/>
+                    <filter name="group_value" string="Voto" context="{'group_by': 'value'}"/>
+                    <filter name="group_reason" string="Motivo" context="{'group_by': 'reason'}"/>
+                    <filter name="group_document" string="Documento" context="{'group_by': 'document_ids'}" groups="base.group_system"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_feedback_view_graph" model="ir.ui.view">
+        <field name="name">buddy.feedback.graph</field>
+        <field name="model">buddy.feedback</field>
+        <field name="arch" type="xml">
+            <graph string="Votos por día" type="bar" stacked="1">
+                <field name="day" interval="day"/>
+                <field name="value"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="buddy_feedback_view_pivot" model="ir.ui.view">
+        <field name="name">buddy.feedback.pivot</field>
+        <field name="model">buddy.feedback</field>
+        <field name="arch" type="xml">
+            <pivot string="Votos por día">
+                <field name="day" interval="day" type="row"/>
+                <field name="votes" type="measure"/>
+                <field name="positive" type="measure" widget="percentage"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="buddy_feedback_action" model="ir.actions.act_window">
+        <field name="name">Calidad de respuestas</field>
+        <field name="res_model">buddy.feedback</field>
+        <field name="view_mode">graph,pivot,list,form</field>
+        <field name="search_view_id" ref="buddy_feedback_view_search"/>
+        <field name="context">{'search_default_last_30': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No hay votos para mostrar todavía</p>
+            <p>Bajo cada respuesta del buddy hay un 👍 y un 👎. Acá ves cuántos votos hubo por día, qué porcentaje fue
+               positivo (el promedio de 👍 sobre el total), por qué motivos se votó 👎 y (si sos administrador) qué documentos
+               acumulan más votos negativos.</p>
+            <p>Los votos solo se anotan con el día: no dicen quién los dio ni a qué hora. Por eso los administradores los ven
+               enseguida y los gestores, desde el día siguiente. Los documentos figuran solo si al menos 5 personas pueden leer
+               las carpetas citadas (así un voto no delata a quien lo dio): en una empresa chica casi nunca pasa.</p>
+        </field>
+    </record>
+
+    <menuitem id="buddy_menu_feedback" name="Calidad de respuestas" parent="buddy_menu_insights"
+              action="buddy_feedback_action" sequence="30" groups="base.group_system,buddy_ia.group_buddy_manager"/>
+</odoo>

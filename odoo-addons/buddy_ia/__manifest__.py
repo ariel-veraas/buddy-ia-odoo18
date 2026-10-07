@@ -1,0 +1,55 @@
+{
+    "name": "Buddy IA",
+    "version": "18.0.5.5.0",
+    "category": "Productivity",
+    "summary": "Asistente con IA que responde con los documentos de tu Google Drive, con permisos por grupo",
+    "description": """
+Un buddy flotante que saluda, responde dudas con los documentos de tus carpetas de Google Drive (solo los que cada
+persona puede ver), guía a quienes son nuevos, deriva a la persona indicada y, con confirmación del usuario, crea tickets.
+
+Sin dependencias fuera de Odoo: la sincronización con Drive, la búsqueda y las llamadas al proveedor de IA (Claude,
+OpenAI, Gemini u otro compatible) son parte del módulo.
+    """,
+    "author": "Equipo Buddy",
+    "license": "LGPL-3",
+    "depends": ["web", "mail"],
+    "data": [
+        "security/buddy_security.xml",
+        "security/ir.model.access.csv",
+        "data/buddy_data.xml",
+        "data/buddy_cron.xml",
+        "data/buddy_journey_data.xml",
+        "data/buddy_digest_data.xml",
+        "views/buddy_ticket_views.xml",
+        "views/buddy_insight_views.xml",
+        "views/buddy_feedback_views.xml",
+        "views/buddy_journey_views.xml",
+        "views/buddy_digest_views.xml",
+        "views/buddy_source_views.xml",
+        "views/buddy_contact_views.xml",
+        "views/res_config_settings_views.xml",
+    ],
+    "assets": {
+        "web.assets_backend": [
+            "buddy_ia/static/src/scss/buddy_avatar.scss",
+            "buddy_ia/static/src/scss/buddy.scss",
+            "buddy_ia/static/src/xml/buddy_avatar.xml",
+            "buddy_ia/static/src/xml/buddy_avatar_kitsune.xml",
+            "buddy_ia/static/src/xml/buddy_avatar_mochi.xml",
+            "buddy_ia/static/src/xml/buddy_look.xml",
+            "buddy_ia/static/src/xml/buddy.xml",
+            "buddy_ia/static/src/xml/buddy_sync_refresh.xml",
+            "buddy_ia/static/src/js/buddy_registry.js",
+            "buddy_ia/static/src/js/buddy_idle.js",
+            "buddy_ia/static/src/js/buddy_avatar.js",
+            "buddy_ia/static/src/js/buddy_look.js",
+            "buddy_ia/static/src/js/buddy_journey.js",
+            "buddy_ia/static/src/js/buddy_suggestions.js",
+            "buddy_ia/static/src/js/buddy.js",
+            "buddy_ia/static/src/js/buddy_sync_refresh.js",
+        ],
+    },
+    "uninstall_hook": "uninstall_hook",
+    "installable": True,
+    "application": False,
+}

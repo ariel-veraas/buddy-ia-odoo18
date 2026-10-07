@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Resumen semanal «Qué falta documentar». Solo lectura: lo arma el cron (o el botón de Ajustes). Los títulos de documentos y de carpetas que se
+         ven al abrirlo dependen de los permisos de quien lo abre. -->
+    <record id="buddy_digest_view_list" model="ir.ui.view">
+        <field name="name">buddy.digest.list</field>
+        <field name="model">buddy.digest</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-warning="partial" default_order="date_to desc">
+                <field name="date_from" string="Desde"/>
+                <field name="date_last"/>
+                <field name="manual" optional="show"/>
+                <field name="unanswered_count"/>
+                <field name="downvote_count"/>
+                <field name="doubtful_count"/>
+                <field name="unused_count" groups="base.group_system"/>
+                <field name="problem_count" optional="show"/>
+                <field name="late_count" optional="show"/>
+                <field name="partial" string="Incompleto" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="buddy_digest_view_form" model="ir.ui.view">
+        <field name="name">buddy.digest.form</field>
+        <field name="model">buddy.digest</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name"/></h1>
+                    </div>
+                    <field name="report" nolabel="1" class="o_buddy_digest"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="buddy_digest_view_search" model="ir.ui.view">
+        <field name="name">buddy.digest.search</field>
+        <field name="model">buddy.digest</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="with_findings" string="Con preguntas sin respuesta" domain="[('unanswered_count', '&gt;', 0)]"/>
+                <filter name="last_30" string="Últimos 30 días" domain="[('date_to', '&gt;=', (context_today() - relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="buddy_digest_action" model="ir.actions.act_window">
+        <field name="name">Resumen semanal</field>
+        <field name="res_model">buddy.digest</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="buddy_digest_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Todavía no hay resúmenes</p>
+            <p>Cada semana Buddy arma acá un resumen de qué conviene documentar: las preguntas que no pudo responder, los documentos que la
+               gente votó 👎, los que se contradicen o no se usan y las carpetas con problemas. Se arma solo, sin inteligencia artificial,
+               y te avisa con una actividad. Si todavía no llegó el primero, un administrador puede pedirlo ahora desde Ajustes → Buddy IA.</p>
+        </field>
+    </record>
+
+    <menuitem id="buddy_menu_digest" name="Resumen semanal" parent="buddy_menu_insights"
+              action="buddy_digest_action" sequence="25" groups="base.group_system,buddy_ia.group_buddy_manager"/>
+</odoo>
